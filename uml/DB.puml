@@ -1,6 +1,37 @@
 @startuml
 
 class DB{
+    - $db
+    - $dns
+    - $name
+    - $pass
+    - $error
+    - $dbType
+    - $persistent
+    - $transaction
+    - $conditions = ['<', '>', '<=', '>=', '=']
+    - $lastResult
+    - $lastInsertId
+    - $fetchStyle = \PDO::FETCH_ASSOC
+    - $errorMessage
+
+    # getDB()
+    # getDBType()
+    # initialize()
+    + begin()
+    + exec($queryString, $arrayParams)
+    + commit()
+    + rollBack
+    + error($errorDisplayCode)
+    + execAction($arrayParams)
+    + select($table = '', $fields = '*', $where = [])
+    + delete($table, $where = [])
+    + insert($table, $fieldsValues = [])
+    + update($table, $fieldsValues = [], $where = [])
+    + getFetchStyle()
+    + setFetchStyle()
+    + getLastInsertId()
+    + getErrorMessage()
 
 }
 

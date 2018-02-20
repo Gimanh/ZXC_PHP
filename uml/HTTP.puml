@@ -1,7 +1,37 @@
 @startuml
+class Singleton{
+    {static} - $instance = null;
+    -  __construct()
+    -  __clone()
+    -  __wakeup()
+    {static} +  getInstance()
+}
 
-class HTTP{
+class HTTP extends Singleton{
+    - $get;
+    - $host;
+    - $path;
+    - $post;
+    - $port;
+    - $server;
+    - $method;
+    - $scheme;
+    - $protocol;
+    - $baseRoute;
 
+    - __construct()
+    - normalizePath()
+    +  getHost()
+    +  getPort()
+    +  getPath()
+    +  getMethod()
+    +  getScheme()
+    +  getProtocolVersion()
+    +  getPost()
+    +  getGet()
+    +  getBaseRoute()
+    +  getInputData($dataName)
+    +  getURL()
 }
 
 @enduml
