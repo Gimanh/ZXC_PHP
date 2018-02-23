@@ -8,13 +8,12 @@ require_once ZXC_ROOT . DIRECTORY_SEPARATOR . 'ZXC' . DIRECTORY_SEPARATOR
     . 'Native' . DIRECTORY_SEPARATOR . 'Helper.php';
 
 
-use ZXC\Native\Helper;
 use ZXC\Patterns\Singleton;
 
 class Autoload
 {
     use Singleton;
-    private static $autoloadDirectories = [];
+    private static $autoloadDirectories = ['' => true];
 
     /**
      * Initialize autoload directories
@@ -118,8 +117,13 @@ class Autoload
             if (!empty(self::$autoloadDirectories)) {
                 foreach (self::$autoloadDirectories as $dir => $val) {
                     if ($val) {
-                        $file = ZXC_ROOT . DIRECTORY_SEPARATOR . $dir
-                            . DIRECTORY_SEPARATOR . $fileClass . '.php';
+                        if ($dir) {
+                            $file = ZXC_ROOT . DIRECTORY_SEPARATOR . $dir
+                                . DIRECTORY_SEPARATOR . $fileClass . '.php';
+                        } else {
+                            $file = ZXC_ROOT . DIRECTORY_SEPARATOR . $fileClass . '.php';
+                        }
+
                         $file = realpath($file);
                         if ($file && is_file($file)) {
                             break;
