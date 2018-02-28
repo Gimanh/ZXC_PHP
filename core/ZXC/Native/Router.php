@@ -21,6 +21,7 @@ class Router
      *          'hooksResultTransfer'=> true
      *      ]
      *  ]
+     * @return bool
      */
     public function initialize(array $config = [])
     {
@@ -31,33 +32,31 @@ class Router
         foreach ($config as $routeParams) {
             $this->initializeRouteInstance($routeParams);
         }
+        return true;
     }
 
     public function initializeRouteInstance($routeParams)
     {
         $routeInstance = new Route($routeParams);
-        $this->setRoute($routeInstance);
+        $this->registerRouteInstance($routeInstance);
         $children = $routeInstance->getChildren();
         if ($children) {
             $this->initializeRouteInstance($children);
         }
+        return true;
     }
 
-    /**
-     * Set parsed route in $this->routes type(GET,POST)
-     * @param Route $parsedRoute
-     */
-    private function setRoute(Route $parsedRoute)
+    private function registerRouteInstance(Route $parsedRoute)
     {
         $parsedRouteType = $parsedRoute->getRequestMethod();
         if (isset($this->routeTypes[$parsedRouteType]) && $this->routeTypes[$parsedRouteType] === true) {
             $this->routes[$parsedRouteType][$parsedRoute->getRoutePath()] = $parsedRoute;
         }
+        return $parsedRoute;
     }
 
 
     /**
-     * Disable router type
      * @param string $type (GET,POST)
      * @return bool
      */
@@ -73,14 +72,25 @@ class Router
         return false;
     }
 
+    public function enableRouterType($type)
+    {
+        $type = strtoupper($type);
+        if (isset($this->routeTypes[$type])) {
+            $this->routeTypes[$type] = true;
+
+            return true;
+        }
+
+        return false;
+    }
+
     /**
-     * Get router parameters for URI
      * @param string $uri http->getPath
      * @param string $base http->getBaseRoute
      * @param string $method http->getMethod
      * @return bool|Route
      */
-    public function getCurrentRoutParams($uri, $base, $method)
+    public function getRoutParamsFromURI($uri, $base, $method)
     {
         if (!$uri || !$base || !$method) {
             throw new \InvalidArgumentException('Undefined $params');
@@ -109,7 +119,7 @@ class Router
                     )
                 );
                 if ($params) {
-                    $route->setParams($params);
+                    $route->setRouteURIParams($params);
                 }
 
                 return $route;

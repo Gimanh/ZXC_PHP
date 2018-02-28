@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use ZXC\Native\Route;
 
 $dir = __DIR__;
 $config = [];
@@ -11,9 +12,9 @@ if (file_exists($file)) {
 
 class FakeClassForRouteTest
 {
-    public function getValue()
+    public function getIndex()
     {
-        return 'value';
+        return 'index';
     }
 
     public function getUser()
@@ -26,9 +27,47 @@ class FakeClassForRouteTest
         return 'beforeGetUser';
     }
 
-    public function afterGettingUser()
+    public function afterGetUser()
     {
         return 'afterGettingUser';
+    }
+
+    public function getUserProfile()
+    {
+        return ' user profile';
+    }
+
+    public function beforeGetUserProfile()
+    {
+        return 'before get profile';
+    }
+}
+
+class FakeClassForRouteTestSecond
+{
+    public function afterGetUserProfile()
+    {
+        return 'after get profile';
+    }
+}
+
+class FakeClassForRouteTestSingleton
+{
+    use \ZXC\Patterns\Singleton;
+
+    public function getUserProfile2()
+    {
+        return ' user profile2';
+    }
+
+    public function beforeGetUserProfile2()
+    {
+        return 'before get profile2';
+    }
+
+    public function afterGetUserProfile2()
+    {
+        return 'after get profile2';
     }
 }
 
@@ -42,19 +81,19 @@ class RouteTest extends TestCase
     public function __construct(?string $name = null, array $data = [], string $dataName = '')
     {
         $routerConfig = [
-            /*[
+            [
                 'route' => 'GET|/',
                 'callback' => function ($zxc, $parameters) {
 
                 }
             ],
             [
-                'route' => 'GET|/|FakeClassForRouteTest:getValue',
+                'route' => 'GET|/|FakeClassForRouteTest:getIndex',
             ],
-            [
+            /*[
                 'route' => 'POST|/:user|FakeClassForRouteTest:getUser',
                 'before' => 'FakeClassForRouteTest:beforeGetUser',
-                'after' => 'FakeClassForRouteTest:afterGettingUser',
+                'after' => 'FakeClassForRouteTest:afterGetUser',
                 'hooksResultTransfer' => true,
             ],*/
             [
@@ -62,21 +101,19 @@ class RouteTest extends TestCase
                 'call' => function ($zxc) {
                     $stop = $zxc;
                 },
-                'before' => 'ASD\TestClass:before',
-                'after' => function ($z, $p, $result) {
-                    $zxc = $z;
-                    $params = $p;
-                    echo 'after hooks=>' . $result;
+                'before' => 'FakeClassForRouteTest:beforeGetUser',
+                'after' => function ($zxc, $parameters) {
+
                 },
                 'hooksResultTransfer' => true,
                 'children' => [
-                    'route' => 'GET|profile|QWEQ:profile',
-                    'before' => 'QWEQ:profileBefore',
-                    'after' => 'QWEQ:profileAfter',
+                    'route' => 'GET|profile|FakeClassForRouteTest:getUserProfile',
+                    'before' => 'FakeClassForRouteTest:beforeGetUserProfile',
+                    'after' => 'FakeClassForRouteTestSecond:afterGetUserProfile',
                     'children' => [
-                        'route' => 'POST|profile2|QWEQ:profile2',
-                        'before' => 'QWEQ:profileBefore2',
-                        'after' => 'QWEQ:profileAfter2',
+                        'route' => 'POST|profile2|FakeClassForRouteTestSingleton:getUserProfile2',
+                        'before' => 'FakeClassForRouteTestSingleton:beforeGetUserProfile2',
+                        'after' => 'FakeClassForRouteTestSingleton:afterGetUserProfile2',
                     ]
                 ]
             ]
@@ -86,8 +123,152 @@ class RouteTest extends TestCase
         parent::__construct($name, $data, $dataName);
     }
 
-    public function testInitialize()
+    public function testInitializeException()
     {
+        $this->assertSame($this->router, \ZXC\Native\Router::getInstance());
 
+        $this->expectException(\InvalidArgumentException::class);
+        $this->router->initialize([]);
+    }
+
+    public function testInitializeRouteException()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new \ZXC\Native\Route([]);
+    }
+
+    public function testRouterStructure()
+    {
+        $this->assertArrayHasKey('GET', $this->router->getRoutes());
+        $this->assertArrayHasKey('POST', $this->router->getRoutes());
+
+        $routesCount = count($this->router->getRoutes());
+        $this->assertTrue($routesCount >= 2);
+
+        $routeTypes = count($this->router->getRouteTypes());
+        $this->assertTrue($routeTypes >= 2);
+
+        $this->assertArrayHasKey('/', $this->router->getRoutes()['GET']);
+        $this->assertArrayHasKey('/:user/profile', $this->router->getRoutes()['GET']);
+
+        $this->assertArrayHasKey('/:user', $this->router->getRoutes()['POST']);
+        $this->assertArrayHasKey('/:user/profile/profile2', $this->router->getRoutes()['POST']);
+    }
+
+    public function testRouteIndex()
+    {
+        /**
+         * @var $indexRoute Route
+         */
+        $indexRoute = $this->router->getRoutes()['GET']['/'];
+        $this->assertSame($indexRoute->getRequestMethod(), 'GET');
+        $this->assertSame($indexRoute->getRoutePath(), '/');
+        $this->assertSame($indexRoute->getRegex(), '@^/$@D');
+        $this->assertSame($indexRoute->getClass(), 'FakeClassForRouteTest');
+        $this->assertSame($indexRoute->getClassMethod(), 'getIndex');
+        $this->assertSame($indexRoute->getCallback(), null);
+        $this->assertSame($indexRoute->getRouteURIParams(), null);
+        $this->assertSame($indexRoute->getBefore(), null);
+        $this->assertSame($indexRoute->getAfter(), null);
+        $this->assertSame($indexRoute->getHooksResultTransfer(), null);
+        $this->assertSame($indexRoute->getChildren(), null);
+    }
+
+    public function testUserProfileRoute()
+    {
+        /**
+         * @var $userProfileRoute Route
+         */
+        $userProfileRoute = $this->router->getRoutes()['GET']['/:user/profile'];
+        $this->assertSame($userProfileRoute->getRequestMethod(), 'GET');
+        $this->assertSame($userProfileRoute->getRoutePath(), '/:user/profile');
+        $this->assertSame($userProfileRoute->getRegex(), '@^/(?<user>[a-zA-Z0-9\_\-]+)/profile$@D');
+
+        $this->assertSame($userProfileRoute->getClass(), 'FakeClassForRouteTest');
+        $this->assertSame($userProfileRoute->getClassMethod(), 'getUserProfile');
+        $this->assertSame($userProfileRoute->getCallback(), null);
+        $this->assertSame($userProfileRoute->getRouteURIParams(), null);
+
+        $this->assertSame($userProfileRoute->getBefore(),
+            ['class' => 'FakeClassForRouteTest', 'method' => 'beforeGetUserProfile']);
+
+        $this->assertSame($userProfileRoute->getAfter(),
+            ['class' => 'FakeClassForRouteTestSecond', 'method' => 'afterGetUserProfile']);
+
+        $this->assertSame($userProfileRoute->getHooksResultTransfer(), null);
+        $this->assertSame($userProfileRoute->getChildren(), [
+            'route' => 'POST|/:user/profile/profile2|FakeClassForRouteTestSingleton:getUserProfile2',
+            'before' => 'FakeClassForRouteTestSingleton:beforeGetUserProfile2',
+            'after' => 'FakeClassForRouteTestSingleton:afterGetUserProfile2'
+        ]);
+    }
+
+    public function testUserRoute()
+    {
+        /**
+         * @var $userRoute Route
+         */
+        $userRoute = $this->router->getRoutes()['POST']['/:user'];
+
+        $this->assertSame($userRoute->getRequestMethod(), 'POST');
+        $this->assertSame($userRoute->getRoutePath(), '/:user');
+        $this->assertSame($userRoute->getRegex(), '@^/(?<user>[a-zA-Z0-9\_\-]+)$@D');
+        $this->assertSame($userRoute->getClass(), 'FakeClassForRouteTest');
+        $this->assertSame($userRoute->getClassMethod(), 'getUser');
+        $this->assertSame($userRoute->getCallback(), null);
+        $this->assertSame($userRoute->getRouteURIParams(), null);
+
+        $this->assertSame($userRoute->getBefore(),
+            ['class' => 'FakeClassForRouteTest', 'method' => 'beforeGetUser']);
+        $this->assertTrue(is_callable($userRoute->getAfter()));
+
+        $this->assertSame($userRoute->getHooksResultTransfer(), true);
+
+        $this->assertSame($userRoute->getChildren(), [
+            'route' => 'GET|/:user/profile|FakeClassForRouteTest:getUserProfile',
+            'before' => 'FakeClassForRouteTest:beforeGetUserProfile',
+            'after' => 'FakeClassForRouteTestSecond:afterGetUserProfile',
+            'children' => [
+                'route' => 'POST|profile2|FakeClassForRouteTestSingleton:getUserProfile2',
+                'before' => 'FakeClassForRouteTestSingleton:beforeGetUserProfile2',
+                'after' => 'FakeClassForRouteTestSingleton:afterGetUserProfile2',
+            ]
+        ]);
+    }
+
+    public function testUserProfile2()
+    {
+        /**
+         * @var $userProfileRoute2 Route
+         */
+        $userProfileRoute2 = $this->router->getRoutes()['POST']['/:user/profile/profile2'];
+
+        $this->assertSame($userProfileRoute2->getRequestMethod(), 'POST');
+        $this->assertSame($userProfileRoute2->getRoutePath(), '/:user/profile/profile2');
+        $this->assertSame($userProfileRoute2->getRegex(), '@^/(?<user>[a-zA-Z0-9\_\-]+)/profile/profile2$@D');
+        $this->assertSame($userProfileRoute2->getClass(), 'FakeClassForRouteTestSingleton');
+        $this->assertSame($userProfileRoute2->getClassMethod(), 'getUserProfile2');
+        $this->assertSame($userProfileRoute2->getCallback(), null);
+        $this->assertSame($userProfileRoute2->getRouteURIParams(), null);
+        $this->assertSame($userProfileRoute2->getBefore(),
+            ['class' => 'FakeClassForRouteTestSingleton', 'method' => 'beforeGetUserProfile2']);
+        $this->assertSame($userProfileRoute2->getAfter(),
+            ['class' => 'FakeClassForRouteTestSingleton', 'method' => 'afterGetUserProfile2']);
+        $this->assertSame($userProfileRoute2->getHooksResultTransfer(), null);
+        $this->assertSame($userProfileRoute2->getChildren(), null);
+    }
+
+    public function testDisableRouterType()
+    {
+        $this->assertTrue($this->router->getRouteTypes()['GET']);
+        $this->router->disableRouterType('GET');
+        $this->assertFalse($this->router->getRouteTypes()['GET']);
+    }
+
+    public function testEnableRouterType()
+    {
+        $this->assertFalse($this->router->getRouteTypes()['GET']);
+        $this->router->enableRouterType('GET');
+        $this->assertTrue($this->router->getRouteTypes()['GET']);
     }
 }

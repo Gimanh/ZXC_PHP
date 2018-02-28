@@ -10,9 +10,10 @@ class Route
     private $routePath;
     private $regex;
     private $class;
+
     private $classMethod;
     private $callback;
-    private $params;
+    private $routeURIParams;
     private $before;
     private $after;
     private $hooksResultTransfer;
@@ -57,13 +58,14 @@ class Route
         $this->callback = $parsedParams['callback'];
         $this->class = $classAndMethod['class'];
         $this->classMethod = $classAndMethod['method'];
+        $this->hooksResultTransfer = isset($routeParams['hooksResultTransfer']) ? $routeParams['hooksResultTransfer'] : null;
 
         if (isset($routeParams['children'])) {
-            $this->children = $this->prepareChildrenRouteParams($routeParams['children']);
+            $this->children = $this->prepareParsedChildrenRouteParams($routeParams['children']);
         }
     }
 
-    public function prepareChildrenRouteParams($childrenParams)
+    public function prepareParsedChildrenRouteParams($childrenParams)
     {
         if (!isset($childrenParams['route'])) {
             throw new \InvalidArgumentException('Invalid $childrenParams');
@@ -76,6 +78,15 @@ class Route
         return $childrenParams;
     }
 
+    /**
+     * @param $routeParams
+     * @return array [
+     * 'requestMethod' => '',
+     * 'routePath' => '',
+     * 'classAndMethod' => '',
+     * 'callback' => ''
+     * ]
+     */
     public function parseRouteString($routeParams)
     {
         $params = explode('|', $routeParams['route']);
@@ -172,7 +183,7 @@ class Route
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getRequestMethod()
     {
@@ -180,7 +191,7 @@ class Route
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getRoutePath()
     {
@@ -188,7 +199,7 @@ class Route
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getRegex()
     {
@@ -196,7 +207,7 @@ class Route
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getClass()
     {
@@ -204,7 +215,7 @@ class Route
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getClassMethod()
     {
@@ -212,7 +223,7 @@ class Route
     }
 
     /**
-     * @return mixed
+     * @return callable|bool
      */
     public function getCallback()
     {
@@ -222,22 +233,98 @@ class Route
     /**
      * @return mixed
      */
-    public function getParams()
+    public function getRouteURIParams()
     {
-        return $this->params;
+        return $this->routeURIParams;
     }
 
     /**
-     * @param mixed $params
+     * @param mixed $routeURIParams //TODO add real type
      */
-    public function setParams($params)
+    public function setRouteURIParams($routeURIParams)
     {
-        $this->params = $params;
+        $this->routeURIParams = $routeURIParams;
+    }
+
+    /**
+     * Execute route
+     * @param ZXC $zxc
+     * @return bool|mixed
+     */
+    public function executeRoute($zxc)
+    {
+        $outputFunctionsResult = false;
+        $resultFromMainMethod = null;
+        $resultFromBeforeMethod = null;
+        $resultFromAfterMethod = null;
+        $paramsForSecondRouteArguments = [];
+        $paramsForSecondRouteArguments['routeParams'] = $this->routeURIParams;
+        if ($this->class) {
+            if (!class_exists($this->class)) {
+                $zxc = ZXC::getInstance();
+                $logger = $zxc->getLogger();
+                $logger->critical('Class ' . $this->class . ' not exist');
+            }
+            if (is_subclass_of($this->class, 'ZXC\Factory', true) ||
+                $this->classUsesTrait($this->class, 'ZXC\Patterns\Singleton')) {
+                $userClass = call_user_func(
+                    $this->class . '::getInstance'
+                );
+                $outputFunctionsResult = call_user_func_array(
+                    [$userClass, $this->classMethod],
+                    [$zxc, $paramsForSecondRouteArguments]
+                );
+            } else {
+                if (class_exists($this->class)) {
+                    $userClass = new $this->class;
+                    if (is_subclass_of($this->class, 'ZXC\Interfaces\Module', true)) {
+                        if (method_exists($userClass, 'initialize')) {
+                            $userClass->initialize();
+                        }
+                    }
+                    $resultFromBeforeMethod = $this->callBefore($zxc, $userClass);
+                    if (method_exists($userClass, $this->classMethod)) {
+                        if ($this->hooksResultTransfer) {
+                            $paramsForSecondRouteArguments['resultBefore'] = $resultFromBeforeMethod;
+                            $resultFromMainMethod = call_user_func_array(
+                                [$userClass, $this->classMethod],
+                                [$zxc, $paramsForSecondRouteArguments]
+                            );
+                            $outputFunctionsResult = $this->callAfter($zxc, $resultFromMainMethod, $userClass);
+                        } else {
+                            $outputFunctionsResult = call_user_func_array(
+                                [$userClass, $this->classMethod],
+                                [$zxc, $paramsForSecondRouteArguments]
+                            );
+                            $this->callAfter($zxc, null, $userClass);
+                        }
+                    }
+                }
+            }
+        } elseif (is_callable($this->callback)) {
+            //TODO check double initialize when we are using before and after hooks from same class (we are colling __construct twice)
+            $resultFromBeforeMethod = $this->callBefore($zxc);
+            if ($this->hooksResultTransfer) {
+                $paramsForSecondRouteArguments['resultBefore'] = $resultFromBeforeMethod;
+                $resultFromMainMethod = call_user_func_array(
+                    $this->callback, [$zxc, $paramsForSecondRouteArguments]
+                );
+                $outputFunctionsResult = $this->callAfter($zxc, $resultFromMainMethod);
+            } else {
+                $outputFunctionsResult = call_user_func_array(
+                    $this->callback, [$zxc, $paramsForSecondRouteArguments]
+                );
+                $this->callAfter($zxc);
+            }
+        } else {
+            throw new \InvalidArgumentException('Main function or method is not defined for the route');
+        }
+        return $outputFunctionsResult;
     }
 
     private function callBefore(ZXC $zxc, $mainClass = null)
     {
-        $paramsForSecondRouteArguments['routeParams'] = $this->params;
+        $paramsForSecondRouteArguments['routeParams'] = $this->routeURIParams;
         $resultBefore = null;
         if ($this->before) {
             if (is_array($this->before)) {
@@ -276,7 +363,7 @@ class Route
 
     private function callAfter(ZXC $zxc, $resultMainMethod = null, $mainClass = null)
     {
-        $paramsForSecondRouteArguments['routeParams'] = $this->params;
+        $paramsForSecondRouteArguments['routeParams'] = $this->routeURIParams;
         $paramsForSecondRouteArguments['resultMain'] = $resultMainMethod;
 
         if ($this->after) {
@@ -311,81 +398,6 @@ class Route
         return false;
     }
 
-    /**
-     * Execute route
-     * @param ZXC $zxc
-     * @return bool|mixed
-     */
-    public function executeRoute($zxc)
-    {
-        $out = false;
-        $resultMainFunc = null;
-        $resultBefore = null;
-        $resultAfter = null;
-        $paramsForSecondRouteArguments = [];
-        $paramsForSecondRouteArguments['routeParams'] = $this->params;
-        if ($this->class) {
-            if (!class_exists($this->class)) {
-                $zxc = ZXC::getInstance();
-                $logger = $zxc->getLogger();
-                $logger->critical('Class ' . $this->class . ' not exist');
-            }
-            if (is_subclass_of($this->class, 'ZXC\Factory', true) ||
-                $this->classUsesTrait($this->class, 'ZXC\Patterns\Singleton')) {
-                $userClass = call_user_func(
-                    $this->class . '::getInstance'
-                );
-                $out = call_user_func_array(
-                    [$userClass, $this->classMethod],
-                    [$zxc, $paramsForSecondRouteArguments]
-                );
-            } else {
-                if (class_exists($this->class)) {
-                    $userClass = new $this->class;
-                    if (is_subclass_of($this->class, 'ZXC\Interfaces\Module', true)) {
-                        if (method_exists($userClass, 'initialize')) {
-                            $userClass->initialize();
-                        }
-                    }
-                    $resultBefore = $this->callBefore($zxc, $userClass);
-                    if (method_exists($userClass, $this->classMethod)) {
-                        if ($this->hooksResultTransfer) {
-                            $paramsForSecondRouteArguments['resultBefore'] = $resultBefore;
-                            $resultMainFunc = call_user_func_array(
-                                [$userClass, $this->classMethod],
-                                [$zxc, $paramsForSecondRouteArguments]
-                            );
-                            $out = $this->callAfter($zxc, $resultMainFunc, $userClass);
-                        } else {
-                            $out = call_user_func_array(
-                                [$userClass, $this->classMethod],
-                                [$zxc, $paramsForSecondRouteArguments]
-                            );
-                            $this->callAfter($zxc, null, $userClass);
-                        }
-                    }
-                }
-            }
-        } elseif (is_callable($this->callback)) {
-            //TODO check double initialize when we are using before and after hooks from same class (we are colling __construct twice)
-            $resultBefore = $this->callBefore($zxc);
-            if ($this->hooksResultTransfer) {
-                $paramsForSecondRouteArguments['resultBefore'] = $resultBefore;
-                $resultMainFunc = call_user_func_array(
-                    $this->callback, [$zxc, $paramsForSecondRouteArguments]
-                );
-                $out = $this->callAfter($zxc, $resultMainFunc);
-            } else {
-                $out = call_user_func_array(
-                    $this->callback, [$zxc, $paramsForSecondRouteArguments]
-                );
-                $this->callAfter($zxc);
-            }
-        } else {
-            throw new \InvalidArgumentException('Main function or method is not defined for the route');
-        }
-        return $out;
-    }
 
     /**
      * @return mixed
