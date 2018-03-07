@@ -37,9 +37,14 @@ class FakeClassForRouteTest
         return ' user profile';
     }
 
-    public function beforeGetUserProfile()
+    public function beforeGetUserProfile($zxc, $someParams)
     {
         return 'before get profile';
+    }
+
+    public function afterGetUserProfile()
+    {
+        return 'after get user profile';
     }
 }
 
@@ -426,5 +431,84 @@ class RouteTest extends TestCase
         $this->assertTrue(is_callable($paramsWithCallback['callback']));
         $this->assertTrue(is_callable($paramsWithCallback['before']));
         $this->assertTrue(is_callable($paramsWithCallback['after']));
+    }
+
+    public function testCallBeforeCallbackWithoutTransferResult()
+    {
+        $params = [
+            'route' => 'POST|/:userParameters/:secondParameters',
+            'callback' => function ($zxc) {
+            },
+            'before' => function ($zxc, $parameters) {
+                $wasCalled = true;
+                $this->assertTrue($wasCalled);
+            },
+            'after' => function ($zxc, $parameters) {
+            }
+        ];
+
+        $route = new Route($params);
+        $zxc = \ZXC\ZXC::getInstance();
+        $route->callBefore($zxc);
+    }
+
+    public function testCallAfterCallbackWithoutTransferResult()
+    {
+        $params = [
+            'route' => 'POST|/:userParameters/:secondParameters',
+            'callback' => function ($zxc) {
+            },
+            'before' => function ($zxc, $parameters) {
+
+            },
+            'after' => function ($zxc, $parameters) {
+                $wasCalled = true;
+                $this->assertTrue($wasCalled);
+            }
+        ];
+
+        $route = new Route($params);
+        $zxc = \ZXC\ZXC::getInstance();
+        $route->callAfter($zxc);
+    }
+
+    public function testExecuteRouteWithAllCallbackFunctions()
+    {
+        $params = [
+            'route' => 'POST|/:userParameters/:secondParameters',
+            'callback' => function ($zxc) {
+                $this->callbackWasCalled = true;
+            },
+            'before' => function ($zxc, $parameters) {
+                $this->beforeWasCalled = true;
+            },
+            'after' => function ($zxc, $parameters) {
+                $this->afterWasCalled = true;
+                $this->assertTrue($this->callbackWasCalled);
+                $this->assertTrue($this->beforeWasCalled);
+            }
+        ];
+
+        $route = new Route($params);
+        $zxc = \ZXC\ZXC::getInstance();
+        $route->executeRoute($zxc);
+    }
+
+    public function testExecuteRouteWithCallbackAndHookMethodsFromClass()
+    {
+        $params = [
+            'route' => 'POST|/:userParameters/:secondParameters',
+            'callback' => function ($zxc) {
+                $this->callbackWasCalled = true;
+                $this->assertTrue($this->callbackWasCalled);
+            },
+            'before' => 'FakeClassForRouteTest:beforeGetUserProfile',
+            'after' => 'FakeClassForRouteTest:afterGetUserProfile',
+            'useCommonClassInstance' => true
+        ];
+
+        $route = new Route($params);
+        $zxc = \ZXC\ZXC::getInstance();
+        $route->executeRoute($zxc);
     }
 }

@@ -10,7 +10,6 @@ class Route
     private $routePath;
     private $regex;
     private $class;
-
     private $classMethod;
     private $callback;
     private $routeURIParams;
@@ -18,6 +17,8 @@ class Route
     private $after;
     private $hooksResultTransfer;
     private $children;
+    private $commonClassInstance;
+    private $useCommonClassInstance;
 
     public function __construct(array $routeParams = [])
     {
@@ -25,6 +26,15 @@ class Route
             throw new \InvalidArgumentException('Empty route params');
         }
         $this->parseRouteParams($routeParams);
+
+        $beforeClass = $this->before && is_array($this->before) ? $this->before['class'] : null;
+        $afterClass = $this->after && is_array($this->after) ? $this->after['class'] : null;
+        $class = $this->class && is_string($this->class) ? $this->class : null;
+        if (isset($routeParams['useCommonClassInstance'])) {
+            if ($beforeClass === $afterClass || $beforeClass === $class || $afterClass === $class) {
+                $this->useCommonClassInstance = true;
+            }
+        }
     }
 
     public function parseRouteParams($routeParams)
@@ -281,6 +291,7 @@ class Route
             } else {
                 if (class_exists($this->class)) {
                     $userClass = new $this->class;
+                    //TODO
                     if (is_subclass_of($this->class, 'ZXC\Interfaces\Module', true)) {
                         if (method_exists($userClass, 'initialize')) {
                             $userClass->initialize();
@@ -307,6 +318,8 @@ class Route
             }
         } elseif (is_callable($this->callback)) {
             //TODO check double initialize when we are using before and after hooks from same class (we are colling __construct twice)
+
+
             $resultFromBeforeMethod = $this->callBefore($zxc);
             if ($this->hooksResultTransfer) {
                 $paramsForSecondRouteArguments['resultBefore'] = $resultFromBeforeMethod;
@@ -326,7 +339,7 @@ class Route
         return $outputFunctionsResult;
     }
 
-    private function callBefore(ZXC $zxc, $mainClass = null)
+    public function callBefore(ZXC $zxc, $mainClass = null)
     {
         $paramsForSecondRouteArguments['routeParams'] = $this->routeURIParams;
         $resultBefore = null;
@@ -365,7 +378,7 @@ class Route
         return $resultBefore;
     }
 
-    private function callAfter(ZXC $zxc, $resultMainMethod = null, $mainClass = null)
+    public function callAfter(ZXC $zxc, $resultMainMethod = null, $mainClass = null)
     {
         $paramsForSecondRouteArguments['routeParams'] = $this->routeURIParams;
         $paramsForSecondRouteArguments['resultMain'] = $resultMainMethod;
