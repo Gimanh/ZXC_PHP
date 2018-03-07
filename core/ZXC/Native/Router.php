@@ -32,6 +32,7 @@ class Router
         foreach ($config as $routeParams) {
             $this->initializeRouteInstance($routeParams);
         }
+
         return true;
     }
 
@@ -43,6 +44,7 @@ class Router
         if ($children) {
             $this->initializeRouteInstance($children);
         }
+
         return true;
     }
 
@@ -52,6 +54,7 @@ class Router
         if (isset($this->routeTypes[$parsedRouteType]) && $this->routeTypes[$parsedRouteType] === true) {
             $this->routes[$parsedRouteType][$parsedRoute->getRoutePath()] = $parsedRoute;
         }
+
         return $parsedRoute;
     }
 
@@ -85,28 +88,54 @@ class Router
     }
 
     /**
-     * @param string $uri http->getPath
-     * @param string $base http->getBaseRoute
-     * @param string $method http->getMethod
-     * @return bool|Route
+     * Returns all registered route types
+     * @return array
      */
-    public function getRoutParamsFromURI($uri, $base, $method)
+    public function getRouteTypes(): array
     {
-        if (!$uri || !$base || !$method) {
+        return $this->routeTypes;
+    }
+
+    /**
+     * Returns all registered routes
+     * @return array
+     */
+    public function getRoutes(): array
+    {
+        return $this->routes;
+    }
+
+    /**
+     * @param string $uri
+     * @param string $baseURIPath http->getBaseRoute
+     * @param string $requestMethod http->getMethod
+     * @return bool|array
+     */
+    public function getRoutParamsFromURI($uri, $baseURIPath, $requestMethod)
+    {
+        if (!$uri || !$baseURIPath || !$requestMethod) {
             throw new \InvalidArgumentException('Undefined $params');
         }
-        if (!isset($this->routes[$method])) {
+
+        if (!isset($this->routes[$requestMethod])) {
             return false;
         }
-        if ($base != '/') {
-            $path = substr($uri, strlen($base));
+
+        $lastSlash = substr($baseURIPath, -1);
+        if ($lastSlash === '/' && $baseURIPath !== '/') {
+            $baseURIPath = rtrim($baseURIPath, '/');
+        }
+
+        if ($baseURIPath != '/') {
+            $path = substr($uri, strlen($baseURIPath));
         } else {
             $path = $uri;
         }
+
         /**
          * @var $route Route
          */
-        foreach ($this->routes[$method] as $route) {
+        foreach ($this->routes[$requestMethod] as $route) {
             $ok = preg_match($route->getRegex(), $path, $matches);
             if ($ok) {
                 $params = array_intersect_key(
@@ -120,30 +149,14 @@ class Router
                 );
                 if ($params) {
                     $route->setRouteURIParams($params);
+
+                    return $params;
                 }
 
-                return $route;
+                return false;
             }
         }
 
         return false;
-    }
-
-    /**
-     * Returns all registered routes
-     * @return array
-     */
-    public function getRoutes(): array
-    {
-        return $this->routes;
-    }
-
-    /**
-     * Returns all registered route types
-     * @return array
-     */
-    public function getRouteTypes(): array
-    {
-        return $this->routeTypes;
     }
 }

@@ -73,7 +73,11 @@ class Route
 
         $parsedRoute = $this->parseRouteString($childrenParams);
         $parsedRoute['routePath'] = $this->routePath . '/' . $parsedRoute['routePath'];
-        $resultRoute = implode('|', $parsedRoute);
+        if (!$parsedRoute['callback']) {
+            $resultRoute = implode('|', $parsedRoute);
+        } else {
+            $resultRoute = $parsedRoute['routePath'];
+        }
         $childrenParams['route'] = rtrim($resultRoute, '|');
         return $childrenParams;
     }

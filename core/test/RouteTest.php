@@ -90,12 +90,15 @@ class RouteTest extends TestCase
             [
                 'route' => 'GET|/|FakeClassForRouteTest:getIndex',
             ],
-            /*[
-                'route' => 'POST|/:user|FakeClassForRouteTest:getUser',
-                'before' => 'FakeClassForRouteTest:beforeGetUser',
-                'after' => 'FakeClassForRouteTest:afterGetUser',
-                'hooksResultTransfer' => true,
-            ],*/
+            [
+                'route' => 'POST|/:userParameters/:secondParameters',
+                'callback' => function ($zxc) {
+                },
+                'before' => function ($zxc, $parameters) {
+                },
+                'after' => function ($zxc, $parameters) {
+                }
+            ],
             [
                 'route' => 'POST|/:user|FakeClassForRouteTest:getUser',
                 'call' => function ($zxc) {
@@ -270,5 +273,158 @@ class RouteTest extends TestCase
         $this->assertFalse($this->router->getRouteTypes()['GET']);
         $this->router->enableRouterType('GET');
         $this->assertTrue($this->router->getRouteTypes()['GET']);
+    }
+
+    public function testGetRouteParamsFromURI()
+    {
+        $routeParams = $this->router->getRoutParamsFromURI('/userTest', '/', 'POST');
+        $this->assertTrue(is_array($routeParams));
+        $this->assertSame($routeParams, ['user' => 'userTest']);
+        $routes = $this->router->getRoutes();
+        /**
+         * @var $userRouteInstance Route
+         */
+        $userRouteInstance = $routes['POST']['/:user'];
+        $this->assertSame($userRouteInstance->getRouteURIParams(), ['user' => 'userTest']);
+
+
+        $routeParams = $this->router->getRoutParamsFromURI('/userTest/profile', '/', 'GET');
+        $this->assertTrue(is_array($routeParams));
+        $this->assertSame($routeParams, ['user' => 'userTest']);
+        /**
+         * @var $userProfileRouteInstance Route
+         */
+        $userProfileRouteInstance = $routes['GET']['/:user/profile'];
+        $this->assertSame($userProfileRouteInstance->getRouteURIParams(), ['user' => 'userTest']);
+
+
+        $routeParams = $this->router->getRoutParamsFromURI('/userTest/secondParameters', '/', 'POST');
+        $this->assertTrue(is_array($routeParams));
+        $this->assertSame($routeParams, ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
+        /**
+         * @var $userTestTwoDinamicParametersRouteInstance Route
+         */
+        $userTestTwoDinamicParametersRouteInstance = $routes['POST']['/:userParameters/:secondParameters'];
+        $this->assertSame($userTestTwoDinamicParametersRouteInstance->getRouteURIParams(),
+            ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
+
+
+        $routeParams = $this->router->getRoutParamsFromURI('/userTest/profile/profile2', '/', 'POST');
+        $this->assertTrue(is_array($routeParams));
+        $this->assertSame($routeParams, ['user' => 'userTest']);
+        /**
+         * @var $userProfileProfile2RouteInstance Route
+         */
+        $userProfileProfile2RouteInstance = $routes['POST']['/:user/profile/profile2'];
+        $this->assertSame($userProfileProfile2RouteInstance->getRouteURIParams(), ['user' => 'userTest']);
+    }
+
+    public function testDifficultBaseRoute()
+    {
+        $routes = $this->router->getRoutes();
+        $routeParams = $this->router->getRoutParamsFromURI('/example/userTest/secondParameters', '/example/', 'POST');
+        $this->assertTrue(is_array($routeParams));
+        $this->assertSame($routeParams, ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
+        /**
+         * @var $userTestTwoDinamicParametersRouteInstance Route
+         */
+        $userTestTwoDinamicParametersRouteInstance = $routes['POST']['/:userParameters/:secondParameters'];
+        $this->assertSame($userTestTwoDinamicParametersRouteInstance->getRouteURIParams(),
+            ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
+
+
+        $routeParams = $this->router->getRoutParamsFromURI('/example/userTest/secondParameters', '/example', 'POST');
+        $this->assertTrue(is_array($routeParams));
+        $this->assertSame($routeParams, ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
+        /**
+         * @var $userTestTwoDinamicParametersRouteInstance Route
+         */
+        $userTestTwoDinamicParametersRouteInstance = $routes['POST']['/:userParameters/:secondParameters'];
+        $this->assertSame($userTestTwoDinamicParametersRouteInstance->getRouteURIParams(),
+            ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
+
+
+        $routeParams = $this->router->getRoutParamsFromURI('/example/userTest/secondParameters', 'example', 'POST');
+        $this->assertFalse($routeParams);
+    }
+
+    public function testExceptionInInitialize()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->router->initialize([]);
+    }
+
+    public function testConstructRouteException()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new Route([]);
+    }
+
+    public function testParseRouteParams()
+    {
+        $params = [
+            'route' => 'POST|/:userParameters/:secondParameters',
+            'callback' => function ($zxc) {
+            },
+            'before' => function ($zxc, $parameters) {
+            },
+            'after' => function ($zxc, $parameters) {
+            }
+        ];
+        $route = new Route($params);
+        $route->parseRouteParams($params);
+        $this->assertSame($route->getRegex(),
+            '@^/(?<userParameters>[a-zA-Z0-9\_\-]+)/(?<secondParameters>[a-zA-Z0-9\_\-]+)$@D');
+    }
+
+    public function testPrepareChildrenRouteParams()
+    {
+        $params = [
+            'route' => 'POST|/:userParameters/:secondParameters',
+            'callback' => function ($zxc) {
+            },
+            'before' => function ($zxc, $parameters) {
+            },
+            'after' => function ($zxc, $parameters) {
+            }
+        ];
+
+        $route = new Route($params);
+        $params = $route->prepareParsedChildrenRouteParams([
+            'route' => 'GET|profile|FakeClassForRouteTest:getUserProfile',
+            'before' => 'FakeClassForRouteTest:beforeGetUserProfile',
+            'after' => 'FakeClassForRouteTestSecond:afterGetUserProfile',
+            'children' => [
+                'route' => 'POST|profile2',
+                'callback' => function () {
+
+                },
+                'before' => function () {
+
+                },
+                'after' => function () {
+
+                }
+            ]
+        ]);
+        $this->assertSame($params['route'],
+            "GET|/:userParameters/:secondParameters/profile|FakeClassForRouteTest:getUserProfile");
+
+        $paramsWithCallback = $route->prepareParsedChildrenRouteParams([
+            'route' => 'POST|profile2',
+            'callback' => function () {
+
+            },
+            'before' => function () {
+
+            },
+            'after' => function () {
+
+            }
+        ]);
+        $this->assertSame($paramsWithCallback['route'], '/:userParameters/:secondParameters/profile2');
+        $this->assertTrue(is_callable($paramsWithCallback['callback']));
+        $this->assertTrue(is_callable($paramsWithCallback['before']));
+        $this->assertTrue(is_callable($paramsWithCallback['after']));
     }
 }
