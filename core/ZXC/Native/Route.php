@@ -17,8 +17,9 @@ class Route
     private $after;
     private $hooksResultTransfer;
     private $children;
+    private $commonClassName;
     private $commonClassInstance;
-    private $useCommonClassInstance;
+    private $useCommonClassInstance = false;
 
     public function __construct(array $routeParams = [])
     {
@@ -32,6 +33,7 @@ class Route
         $class = $this->class && is_string($this->class) ? $this->class : null;
         if (isset($routeParams['useCommonClassInstance'])) {
             if ($beforeClass === $afterClass || $beforeClass === $class || $afterClass === $class) {
+                $this->commonClassName = $beforeClass === $afterClass ? $beforeClass : $beforeClass === $class ? $beforeClass : $afterClass === $class;
                 $this->useCommonClassInstance = true;
             }
         }
@@ -273,53 +275,37 @@ class Route
         $resultFromAfterMethod = null;
         $paramsForSecondRouteArguments = [];
         $paramsForSecondRouteArguments['routeParams'] = $this->routeURIParams;
-        if ($this->class) {
-            if (!class_exists($this->class)) {
-                $zxc = ZXC::getInstance();
-                $logger = $zxc->getLogger();
-                $logger->critical('Class ' . $this->class . ' not exist');
-            }
-            if (is_subclass_of($this->class, 'ZXC\Factory', true) ||
-                $this->classUsesTrait($this->class, 'ZXC\Patterns\Singleton')) {
-                $userClass = call_user_func(
-                    $this->class . '::getInstance'
-                );
-                $outputFunctionsResult = call_user_func_array(
-                    [$userClass, $this->classMethod],
-                    [$zxc, $paramsForSecondRouteArguments]
-                );
+
+        if ($this->useCommonClassInstance) {
+            $this->commonClassInstance = $this->createInstanseOfClass($this->commonClassName);
+        }
+
+        if ($this->class && class_exists($this->class)) {
+            if ($this->commonClassInstance && get_class($this->commonClassInstance) !== $this->class) {
+                $userClass = $this->createInstanseOfClass($this->class);
             } else {
-                if (class_exists($this->class)) {
-                    $userClass = new $this->class;
-                    //TODO
-                    if (is_subclass_of($this->class, 'ZXC\Interfaces\Module', true)) {
-                        if (method_exists($userClass, 'initialize')) {
-                            $userClass->initialize();
-                        }
-                    }
-                    $resultFromBeforeMethod = $this->callBefore($zxc, $userClass);
-                    if (method_exists($userClass, $this->classMethod)) {
-                        if ($this->hooksResultTransfer) {
-                            $paramsForSecondRouteArguments['resultBefore'] = $resultFromBeforeMethod;
-                            $resultFromMainMethod = call_user_func_array(
-                                [$userClass, $this->classMethod],
-                                [$zxc, $paramsForSecondRouteArguments]
-                            );
-                            $outputFunctionsResult = $this->callAfter($zxc, $resultFromMainMethod, $userClass);
-                        } else {
-                            $outputFunctionsResult = call_user_func_array(
-                                [$userClass, $this->classMethod],
-                                [$zxc, $paramsForSecondRouteArguments]
-                            );
-                            $this->callAfter($zxc, null, $userClass);
-                        }
-                    }
+                $userClass = $this->commonClassInstance;
+            }
+            $resultFromBeforeMethod = $this->callBefore($zxc);
+            if (method_exists($userClass, $this->classMethod)) {
+                if ($this->hooksResultTransfer) {
+                    $paramsForSecondRouteArguments['resultBefore'] = $resultFromBeforeMethod;
+                    $resultFromMainMethod = call_user_func_array(
+                        [$userClass, $this->classMethod],
+                        [$zxc, $paramsForSecondRouteArguments]
+                    );
+                    $outputFunctionsResult = $this->callAfter($zxc, $resultFromMainMethod);
+                } else {
+                    $outputFunctionsResult = call_user_func_array(
+                        [$userClass, $this->classMethod],
+                        [$zxc, $paramsForSecondRouteArguments]
+                    );
+                    $this->callAfter($zxc);
                 }
+            } else {
+                throw new \InvalidArgumentException('Method ' . $this->classMethod . ' not exist in class ' . get_class($userClass));
             }
         } elseif (is_callable($this->callback)) {
-            //TODO check double initialize when we are using before and after hooks from same class (we are colling __construct twice)
-
-
             $resultFromBeforeMethod = $this->callBefore($zxc);
             if ($this->hooksResultTransfer) {
                 $paramsForSecondRouteArguments['resultBefore'] = $resultFromBeforeMethod;
@@ -339,17 +325,17 @@ class Route
         return $outputFunctionsResult;
     }
 
-    public function callBefore(ZXC $zxc, $mainClass = null)
+    public function callBefore(ZXC $zxc)
     {
         $paramsForSecondRouteArguments['routeParams'] = $this->routeURIParams;
         $resultBefore = null;
         if ($this->before) {
             if (is_array($this->before)) {
                 if (class_exists($this->before['class'])) {
-                    if ($mainClass && get_class($mainClass) === $this->before['class']) {
-                        $userClassBefore = $mainClass;
+                    if ($this->commonClassInstance && get_class($this->commonClassInstance) === $this->before['class']) {
+                        $userClassBefore = $this->commonClassInstance;
                     } else {
-                        $userClassBefore = new $this->before['class'];
+                        $userClassBefore = $this->createInstanseOfClass($this->before['class']);
                     }
                     if ($this->hooksResultTransfer) {
                         $resultBefore = call_user_func_array(
@@ -378,32 +364,58 @@ class Route
         return $resultBefore;
     }
 
-    public function callAfter(ZXC $zxc, $resultMainMethod = null, $mainClass = null)
+    public function callAfter(ZXC $zxc, $resultMainMethod = null)
     {
+        $resultAfter = false;
         $paramsForSecondRouteArguments['routeParams'] = $this->routeURIParams;
         $paramsForSecondRouteArguments['resultMain'] = $resultMainMethod;
 
         if ($this->after) {
             if (is_array($this->after)) {
                 if (class_exists($this->after['class'])) {
-
-                    if ($mainClass && get_class($mainClass) === $this->after['class']) {
-                        $userClassBefore = $mainClass;
+                    if ($this->commonClassInstance && get_class($this->commonClassInstance) === $this->after['class']) {
+                        $userClassBefore = $this->commonClassInstance;
                     } else {
-                        $userClassBefore = new $this->after['class'];
+                        $userClassBefore = $this->createInstanseOfClass($this->after['class']);
                     }
-                    call_user_func_array(
-                        [$userClassBefore, $this->after['method']],
-                        [$zxc, $paramsForSecondRouteArguments]
-                    );
+                    if ($this->hooksResultTransfer) {
+                        $resultAfter = call_user_func_array(
+                            [$userClassBefore, $this->after['method']],
+                            [$zxc, $paramsForSecondRouteArguments]
+                        );
+                    } else {
+                        call_user_func_array(
+                            [$userClassBefore, $this->after['method']],
+                            [$zxc, $paramsForSecondRouteArguments]
+                        );
+                    }
+
                 }
             } else {
-                call_user_func_array(
-                    $this->after, [$zxc, $paramsForSecondRouteArguments]
-                );
+                if ($this->hooksResultTransfer) {
+                    $resultAfter = call_user_func_array(
+                        $this->after, [$zxc, $paramsForSecondRouteArguments]
+                    );
+                } else {
+                    call_user_func_array(
+                        $this->after, [$zxc, $paramsForSecondRouteArguments]
+                    );
+                }
+
             }
         }
-        return true;
+        return $resultAfter;
+    }
+
+    private function createInstanseOfClass($className)
+    {
+        if (!$className) {
+            throw new \InvalidArgumentException();
+        }
+        if ($this->classUsesTrait($className, 'ZXC\Patterns\Singleton')) {
+            return call_user_func($className . '::getInstance');
+        }
+        return new $className;
     }
 
     public function classUsesTrait($className, string $traitName)
