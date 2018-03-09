@@ -60,18 +60,27 @@ class FakeClassForRouteTestSingleton
 {
     use \ZXC\Patterns\Singleton;
 
-    public function getUserProfile2()
+    public function getUserProfile2($zxc, $parameters)
     {
-        return ' user profile2';
+        if (isset($parameters['resultMain'])) {
+            return ' user profile2 ' . $parameters['resultMain'];
+        }
+        if (isset($parameters['resultBefore'])) {
+            return ' user profile2 ' . $parameters['resultBefore'];
+        }
+        return ' user profile2 ';
     }
 
-    public function beforeGetUserProfile2()
+    public function beforeGetUserProfile2($zxc, $parameters)
     {
         return 'before get profile2';
     }
 
-    public function afterGetUserProfile2()
+    public function afterGetUserProfile2($zxc, $parameters)
     {
+        if (isset($parameters['resultMain'])) {
+            return 'after get profile2' . $parameters['resultMain'];
+        }
         return 'after get profile2';
     }
 }
@@ -535,7 +544,7 @@ class RouteTest extends TestCase
         $route->executeRoute($zxc);
     }
 
-    public function testExecuteRouteWithMethodsFromClass()
+    public function testExecuteRouteWithMethodsFromOneClass()
     {
         $params = [
             'route' => 'POST|/:userParameters/:secondParameters|FakeClassForRouteTest:getUser',
@@ -549,5 +558,37 @@ class RouteTest extends TestCase
         $zxc = \ZXC\ZXC::getInstance();
         $result = $route->executeRoute($zxc);
         $this->assertSame($result, 'before get profile user  after get user profile');
+    }
+
+    public function testExecuteRouteWithMethodsFromSomeClass()
+    {
+        $params = [
+            'route' => 'POST|/:userParameters/:secondParameters|FakeClassForRouteTest:getUser',
+            'before' => 'FakeClassForRouteTest:beforeGetUserProfile',
+            'after' => 'FakeClassForRouteTestSingleton:getUserProfile2',
+            'useCommonClassInstance' => true,
+            'hooksResultTransfer' => true
+        ];
+
+        $route = new Route($params);
+        $zxc = \ZXC\ZXC::getInstance();
+        $result = $route->executeRoute($zxc);
+        $this->assertSame($result, ' user profile2 before get profile user ');
+    }
+
+    public function testExecuteRouteWithMethodsFromSingletonClass()
+    {
+        $params = [
+            'route' => 'POST|/:userParameters/:secondParameters|FakeClassForRouteTestSingleton:getUserProfile2',
+            'before' => 'FakeClassForRouteTestSingleton:beforeGetUserProfile2',
+            'after' => 'FakeClassForRouteTestSingleton:afterGetUserProfile2',
+            'useCommonClassInstance' => true,
+            'hooksResultTransfer' => true
+        ];
+
+        $route = new Route($params);
+        $zxc = \ZXC\ZXC::getInstance();
+        $result = $route->executeRoute($zxc);
+        $this->assertSame($result, 'after get profile2 user profile2 before get profile2');
     }
 }
