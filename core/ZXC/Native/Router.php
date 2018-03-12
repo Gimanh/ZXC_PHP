@@ -106,37 +106,24 @@ class Router
     }
 
     /**
-     * @param string $uri
-     * @param string $baseURIPath http->getBaseRoute
+     * @param string $requestPath
      * @param string $requestMethod http->getMethod
      * @return bool|array
      */
-    public function getRoutParamsFromURI($uri, $baseURIPath, $requestMethod)
+    public function getRoutParamsFromURI($requestPath, $requestMethod)
     {
-        if (!$uri || !$baseURIPath || !$requestMethod) {
+        if (!$requestPath || !$requestMethod) {
             throw new \InvalidArgumentException('Undefined $params');
         }
 
         if (!isset($this->routes[$requestMethod])) {
             return false;
         }
-
-        $lastSlash = substr($baseURIPath, -1);
-        if ($lastSlash === '/' && $baseURIPath !== '/') {
-            $baseURIPath = rtrim($baseURIPath, '/');
-        }
-
-        if ($baseURIPath != '/') {
-            $path = substr($uri, strlen($baseURIPath));
-        } else {
-            $path = $uri;
-        }
-
         /**
          * @var $route Route
          */
         foreach ($this->routes[$requestMethod] as $route) {
-            $ok = preg_match($route->getRegex(), $path, $matches);
+            $ok = preg_match($route->getRegex(), $requestPath, $matches);
             if ($ok) {
                 $params = array_intersect_key(
                     $matches,

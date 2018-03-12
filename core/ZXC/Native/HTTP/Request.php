@@ -112,7 +112,6 @@ class Request
 
     public function normalize()
     {
-
         if ($this->path !== '/' && $this->baseRoute !== '/') {
             $lastSlash = substr($this->path, -1);
             if ($lastSlash === '/') {
@@ -123,11 +122,6 @@ class Request
                 $this->path = str_replace($this->baseRoute, '', $this->path);
             }
         }
-    }
-
-    public function sendHeader($status = 404)
-    {
-        header("HTTP/1.0 $status {$this->headers[$status]}");
     }
 
     public function getHost()
