@@ -17,13 +17,12 @@ class Autoload
 
     /**
      * Initialize autoload directories
-     * @param array $config ['dir'=>true]
+     * @param array $config ['dirPath'=>true]
      */
-    function initialize(array $config = [])
+    public function initialize(array $config = [])
     {
-        $params = func_get_args();
-        foreach ($params as $item) {
-            $this->setAutoloadDirectories($item);
+        if ($config) {
+            $this->setAutoloadDirectories($config);
         }
     }
 
