@@ -291,7 +291,7 @@ class RouteTest extends TestCase
 
     public function testGetRouteParamsFromURI()
     {
-        $routeParams = $this->router->getRoutParamsFromURI('/userTest', 'POST');
+        $routeParams = $this->router->getRouteWithParamsFromURI('/userTest', 'POST')->getRouteURIParams();
         $this->assertTrue(is_array($routeParams));
         $this->assertSame($routeParams, ['user' => 'userTest']);
         $routes = $this->router->getRoutes();
@@ -302,7 +302,7 @@ class RouteTest extends TestCase
         $this->assertSame($userRouteInstance->getRouteURIParams(), ['user' => 'userTest']);
 
 
-        $routeParams = $this->router->getRoutParamsFromURI('/userTest/profile', 'GET');
+        $routeParams = $this->router->getRouteWithParamsFromURI('/userTest/profile', 'GET')->getRouteURIParams();
         $this->assertTrue(is_array($routeParams));
         $this->assertSame($routeParams, ['user' => 'userTest']);
         /**
@@ -312,7 +312,7 @@ class RouteTest extends TestCase
         $this->assertSame($userProfileRouteInstance->getRouteURIParams(), ['user' => 'userTest']);
 
 
-        $routeParams = $this->router->getRoutParamsFromURI('/userTest/secondParameters', 'POST');
+        $routeParams = $this->router->getRouteWithParamsFromURI('/userTest/secondParameters', 'POST')->getRouteURIParams();
         $this->assertTrue(is_array($routeParams));
         $this->assertSame($routeParams, ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
         /**
@@ -323,7 +323,7 @@ class RouteTest extends TestCase
             ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
 
 
-        $routeParams = $this->router->getRoutParamsFromURI('/userTest/profile/profile2', 'POST');
+        $routeParams = $this->router->getRouteWithParamsFromURI('/userTest/profile/profile2', 'POST')->getRouteURIParams();
         $this->assertTrue(is_array($routeParams));
         $this->assertSame($routeParams, ['user' => 'userTest']);
         /**
@@ -336,7 +336,7 @@ class RouteTest extends TestCase
     public function testDifficultBaseRoute()
     {
         $routes = $this->router->getRoutes();
-        $routeParams = $this->router->getRoutParamsFromURI('/userTest/secondParameters', 'POST');
+        $routeParams = $this->router->getRouteWithParamsFromURI('/userTest/secondParameters', 'POST')->getRouteURIParams();
         $this->assertTrue(is_array($routeParams));
         $this->assertSame($routeParams, ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
         /**
@@ -347,7 +347,7 @@ class RouteTest extends TestCase
             ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
 
 
-        $routeParams = $this->router->getRoutParamsFromURI('/userTest/secondParameters', 'POST');
+        $routeParams = $this->router->getRouteWithParamsFromURI('/userTest/secondParameters', 'POST')->getRouteURIParams();
         $this->assertTrue(is_array($routeParams));
         $this->assertSame($routeParams, ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
         /**
@@ -358,7 +358,7 @@ class RouteTest extends TestCase
             ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
 
 
-        $routeParams = $this->router->getRoutParamsFromURI('/example/userTest/secondParameters', 'POST');
+        $routeParams = $this->router->getRouteWithParamsFromURI('/example/userTest/secondParameters', 'POST');
         $this->assertFalse($routeParams);
     }
 

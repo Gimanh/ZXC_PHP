@@ -14,7 +14,7 @@ return [
              */
             'applevel' => 'debug',
             'settings' => [
-                'filePath' => '../../log/log.log',
+                'filePath' => '../log/log.log',
                 /**
                  * root if set true will load from ZXC_ROOT.'/../../log/log.log'
                  */
@@ -26,6 +26,11 @@ return [
             'time' => 6200,
             'path' => '/',
             'domain' => 'zxc.com'
+        ],
+        'Router' => [
+            [
+                'route' => 'POST|/|FakeClassForTest:fakeMethod'
+            ]
         ]
     ]
 ];

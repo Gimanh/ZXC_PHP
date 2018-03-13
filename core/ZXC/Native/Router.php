@@ -108,9 +108,9 @@ class Router
     /**
      * @param string $requestPath
      * @param string $requestMethod http->getMethod
-     * @return bool|array
+     * @return Route|boolean
      */
-    public function getRoutParamsFromURI($requestPath, $requestMethod)
+    public function getRouteWithParamsFromURI($requestPath, $requestMethod)
     {
         if (!$requestPath || !$requestMethod) {
             throw new \InvalidArgumentException('Undefined $params');
@@ -136,11 +136,9 @@ class Router
                 );
                 if ($params) {
                     $route->setRouteURIParams($params);
-
-                    return $params;
                 }
 
-                return false;
+                return $route;
             }
         }
 

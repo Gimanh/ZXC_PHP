@@ -38,69 +38,34 @@ class ZXC
             $configInstance = Config::getInstance();
             $configInstance->initialize($config);
 
-            $configAutoloadDir = Config::get('ZXC/Autoload');
-            if ($configAutoloadDir) {
+            $haveConfigForAutoloadDir = Config::get('ZXC/Autoload');
+            if ($haveConfigForAutoloadDir) {
                 $autoloadInstance = Autoload::getInstance();
-                $autoloadInstance->initialize($configAutoloadDir);
+                $autoloadInstance->initialize($haveConfigForAutoloadDir);
             }
 
-            $loggerConfig = Config::get('ZXC/Logger');
-            if ($loggerConfig) {
-                $this->logger = new Logger($loggerConfig);
+            $haveLoggerConfig = Config::get('ZXC/Logger');
+            if ($haveLoggerConfig) {
+                $this->logger = new Logger($haveLoggerConfig);
+            }
+            $haveRouterConfig = Config::get('ZXC/Router');
+            if ($haveRouterConfig) {
+                $this->router = Router::getInstance();
+                $this->router->initialize($haveRouterConfig);
+            }
+
+            $this->request = Request::getInstance();
+            if ($this->haveServerParametersForWorking()) {
+                $this->request->initialize($_SERVER);
             }
         }
-
-
-//
-//        $this->http = HTTP::getInstance();
-//
-//        $loggerConfig = Config::get('ZXC/Logger');
-//        if ($loggerConfig) {
-//            $this->logger = new Logger($loggerConfig);
-//        }
-//
-//        $routerParams = Config::get('ZXC/Router');
-//        if ($routerParams) {
-//            $this->router = Router::getInstance();
-//            $this->router->initialize($routerParams);
-//        } else {
-//            throw new \InvalidArgumentException();
-//        }
     }
 
-    public function go()
+    public function haveServerParametersForWorking()
     {
-        /**
-         * @var $routeParams Route
-         */
-        $routeParams = $this->router->getRoutParamsFromURI(
-            $this->request->getPath(), $this->request->getBaseRoute(), $this->request->getMethod()
-        );
-        if (!$routeParams) {
-            $this->request->sendHeader(404);
-            return false;
-        }
-        ob_start();
-        //TODO add codes for Exception
-        try {
-            $routeHandler = $routeParams->executeRoute($this);
-            $body = ob_get_clean();
-        } catch (\InvalidArgumentException $e) {
-            $errorId = uniqid();
-            $this->writeLog($e->getMessage() . ' |---> ' . $errorId);
-            ob_end_clean();
-            $body = '';
-            $routeHandler = ['status' => 500, 'error' => $errorId];
-        } catch (\Exception $e) {
-            $errorId = uniqid();
-            $this->writeLog($e->getMessage() . ' |---> ' . $errorId);
-            ob_end_clean();
-            $body = '';
-            $routeHandler = ['status' => 500, 'error' => $errorId];
-        }
-
-        echo json_encode(['status' => 200, 'body' => $body, 'handler' => $routeHandler]);
-        return true;
+        return isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SERVER_NAME']) &&
+            isset($_SERVER['SERVER_PORT']) && isset($_SERVER['REQUEST_METHOD']) &&
+            isset($_SERVER['REQUEST_URI']) && isset($_SERVER['SERVER_PROTOCOL']);
     }
 
     public function writeLog($msg = '', $param = []): bool
@@ -108,10 +73,7 @@ class ZXC
         if (!$this->logger) {
             return false;
         }
-        if ($this->logger->getLevel() !== 'debug') {
-            return false;
-        }
-        $this->logger->debug($msg, $param);
+        $this->logger->info($msg, $param);
         return true;
     }
 
@@ -145,5 +107,38 @@ class ZXC
     public function getRouter(): Router
     {
         return $this->router;
+    }
+
+    public function go()
+    {
+        /**
+         * @var $routeParams Route
+         */
+        $routeParams = $this->router->getRouteWithParamsFromURI($this->request->getPath(), $this->request->getMethod());
+        if (!$routeParams) {
+            return false;
+        }
+        ob_start();
+        //TODO add codes for Exception
+        try {
+            $routeHandler = $routeParams->executeRoute($this);
+            $body = ob_get_clean();
+            //TODO create class for response
+        } catch (\InvalidArgumentException $e) {
+            $errorId = uniqid();
+            $this->writeLog($e->getMessage() . ' |---> ' . $errorId);
+            ob_end_clean();
+            $body = '';
+            $routeHandler = ['status' => 500, 'error' => $errorId];
+        } catch (\Exception $e) {
+            $errorId = uniqid();
+            $this->writeLog($e->getMessage() . ' |---> ' . $errorId);
+            ob_end_clean();
+            $body = '';
+            $routeHandler = ['status' => 500, 'error' => $errorId];
+        }
+
+        echo json_encode(['status' => 200, 'body' => $body, 'handler' => $routeHandler]);
+        return $routeHandler;
     }
 }

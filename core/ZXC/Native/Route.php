@@ -283,8 +283,10 @@ class Route
         if ($this->class && class_exists($this->class)) {
             if ($this->commonClassInstance && get_class($this->commonClassInstance) !== $this->class) {
                 $userClass = $this->createInstanseOfClass($this->class);
-            } else {
+            } elseif ($this->commonClassInstance) {
                 $userClass = $this->commonClassInstance;
+            } else {
+                $userClass = $this->createInstanseOfClass($this->class);
             }
             $resultFromBeforeMethod = $this->callBefore($zxc);
             if (method_exists($userClass, $this->classMethod)) {
@@ -348,6 +350,8 @@ class Route
                             [$zxc, $paramsForSecondRouteArguments]
                         );
                     }
+                } else {
+                    throw new \InvalidArgumentException('Class ' . $this->before['class'] . ' is not defined');
                 }
             } else {
                 if ($this->hooksResultTransfer) {
@@ -389,7 +393,8 @@ class Route
                             [$zxc, $paramsForSecondRouteArguments]
                         );
                     }
-
+                } else {
+                    throw new \InvalidArgumentException('Class ' . $this->after['class'] . ' is not defined');
                 }
             } else {
                 if ($this->hooksResultTransfer) {
