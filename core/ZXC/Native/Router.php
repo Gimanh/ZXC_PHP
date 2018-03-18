@@ -113,11 +113,11 @@ class Router
     public function getRouteWithParamsFromURI($requestPath, $requestMethod)
     {
         if (!$requestPath || !$requestMethod) {
-            throw new \InvalidArgumentException('Undefined $params');
+            throw new \InvalidArgumentException('Invalid  request path or request method');
         }
 
         if (!isset($this->routes[$requestMethod])) {
-            return false;
+            throw new \InvalidArgumentException('Invalid requestMethod ' . $requestMethod);
         }
         /**
          * @var $route Route
@@ -141,7 +141,6 @@ class Router
                 return $route;
             }
         }
-
-        return false;
+        throw new \InvalidArgumentException('Route "' . $requestPath . '" not found');
     }
 }

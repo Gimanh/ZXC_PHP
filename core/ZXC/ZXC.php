@@ -4,6 +4,7 @@ namespace ZXC;
 
 require_once 'Native/Autoload.php';
 
+use ZXC\Native\HTTP\Response;
 use ZXC\Native\Route;
 use ZXC\Patterns\Singleton;
 use ZXC\Native\Autoload;
@@ -111,34 +112,29 @@ class ZXC
 
     public function go()
     {
-        /**
-         * @var $routeParams Route
-         */
-        $routeParams = $this->router->getRouteWithParamsFromURI($this->request->getPath(), $this->request->getMethod());
-        if (!$routeParams) {
-            return false;
-        }
         ob_start();
-        //TODO add codes for Exception
+        $body = '';
+        $routeHandler = '';
         try {
+            /**
+             * @var $routeParams Route
+             */
+            $routeParams = $this->router->getRouteWithParamsFromURI($this->request->getPath(),
+                $this->request->getMethod());
             $routeHandler = $routeParams->executeRoute($this);
+            Response::setResponseHttpCode(200);
             $body = ob_get_clean();
-            //TODO create class for response
         } catch (\InvalidArgumentException $e) {
-            $errorId = uniqid();
-            $this->writeLog($e->getMessage() . ' |---> ' . $errorId);
+            Response::setResponseHttpCode(500);
+            $this->writeLog($e->getMessage() . ' ' . uniqid());
             ob_end_clean();
-            $body = '';
-            $routeHandler = ['status' => 500, 'error' => $errorId];
         } catch (\Exception $e) {
-            $errorId = uniqid();
-            $this->writeLog($e->getMessage() . ' |---> ' . $errorId);
+            Response::setResponseHttpCode(500);
+            $this->writeLog($e->getMessage() . ' ' . uniqid());
             ob_end_clean();
-            $body = '';
-            $routeHandler = ['status' => 500, 'error' => $errorId];
         }
-
-        echo json_encode(['status' => 200, 'body' => $body, 'handler' => $routeHandler]);
-        return $routeHandler;
+        Response::addHeaders(['Content-Type' => ['application/json']]);
+        echo Response::sendResponse($body, $routeHandler);
+        return true;
     }
 }

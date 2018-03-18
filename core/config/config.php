@@ -30,6 +30,33 @@ return [
         'Router' => [
             [
                 'route' => 'POST|/|FakeClassForTest:fakeMethod'
+            ],
+            [
+                'route' => 'GET|/',
+                'before' => function () {
+                    return ' before';
+                },
+                'callback' => function ($zxc, $params) {
+                    return $params['resultBefore'] . ' <= HI! => ';
+                },
+                'after' => function ($zxc, $params) {
+
+                    return $params['resultMain'] . 'after';
+                },
+                'hooksResultTransfer' => true
+            ],
+            [
+                'route' => 'GET|/:user',
+                'before' => function () {
+                    return 'You are the best ';
+                },
+                'callback' => function ($zxc, $params) {
+                    return $params['resultBefore'] . 'user "'. $params['routeParams']['user'].'"';
+                },
+                'after' => function ($zxc, $params) {
+                    return $params['resultMain'] . ' after me %)';
+                },
+                'hooksResultTransfer' => true
             ]
         ]
     ]
