@@ -46,7 +46,7 @@ class StructureTest extends TestCase
             ]
         ];
         $query = new \ZXC\Classes\SQL\Query();
-        $fields = new \ZXC\Classes\SQL\Fields($fieldsConfig);
+        $fields = new \ZXC\Classes\SQL\Conditions\Fields($fieldsConfig);
         $s1 = $query::create('select');
 
 
@@ -64,19 +64,27 @@ class StructureTest extends TestCase
                 'value' => 'test@handscream.com',
             ]
         ];
-
         $from = [
-            'table' => ['zxc.users'],
-            'subQuery' => '',
+            'zxc.users' => [
+                'subQuery' => ''
+            ],
         ];
         $joins = [
-            [
-                'type' => 'left',
-                'table' => 'session AS ses',
+            'session' => [
+                'as' => 'qwertySession',
+                'type' => '',
                 'on' => 'ses.id = zxc.users.id'
-
+            ],
+            'books' => [
+                'as' => 'userBooks',
+                'type' => 'inner',
+                'on' => 'session.id = userBooks.id'
             ]
         ];
+        $from = new \ZXC\Classes\SQL\Conditions\From($from);
+        $where = new \ZXC\Classes\SQL\Conditions\Where($where);
+        $joins = new \ZXC\Classes\SQL\Conditions\Join($joins);
+
         $stop = $s1->select($fields)->from($from)->where($where)->join($joins)->generateSql();
         $stop = false;
 

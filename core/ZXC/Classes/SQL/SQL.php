@@ -2,17 +2,28 @@
 
 namespace ZXC\Classes\SQL;
 
+use ZXC\Interfaces\SqlConditionFields;
+
 abstract class SQL
 {
     /**
-     * @var $fields  Fields
+     * @var $fields  SqlConditionFields
      */
     protected $fields;
 
+    /**
+     * @var SqlConditionFields
+     */
     protected $from;
 
-    protected $join;//TODO keep in array then in generate we must create string from array
+    /**
+     * @var SqlConditionFields
+     */
+    protected $join;
 
+    /**
+     * @var SqlConditionFields
+     */
     protected $where = [];
 
     protected $values = [];

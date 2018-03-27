@@ -2,12 +2,8 @@
 
 namespace ZXC\Interfaces;
 
-interface Fields
+interface Fields extends SqlConditionFields
 {
-    public function getFieldsString(): string;
-
-    public function getSqlFieldsString(): string;
-
     public function getFieldValue(string $fieldName);
 
     public function setFieldValue(string $fieldName, $value): bool;

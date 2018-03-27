@@ -2,21 +2,19 @@
 
 namespace ZXC\Classes\SQL;
 
+use ZXC\Interfaces\SqlConditionFields;
+
 class Select extends SQL
 {
-    private $sqlStartString = 'SELECT ';
+    private $sql = 'SELECT ';
 
-    public function select(Fields $fields): Select
+    public function select(SqlConditionFields $fields): Select
     {
         $this->fields = $fields;
         return $this;
     }
 
-    /**
-     * @param array $from ['fields'=>['table1', 'table2']]
-     * @return Select
-     */
-    public function from(array $from): Select
+    public function from(SqlConditionFields $from): Select
     {
         /*if (isset($from['table'])) {
             $this->from = implode(', ', $from['table']) . ' ';
@@ -31,11 +29,12 @@ class Select extends SQL
                 }
             }
         }*/
+
         $this->from = $from;
         return $this;
     }
 
-    public function join(array $joins)
+    public function join(SqlConditionFields $joins)
     {
         /*foreach ($joins as $join) {
             $this->join .= $join['type'] . ' JOIN ' . $join['table'] . ' ON ' . $join['on'];
@@ -44,11 +43,7 @@ class Select extends SQL
         return $this;
     }
 
-    /**
-     * @param array $where ['field',]
-     * @return Select
-     */
-    public function where(array $where): Select
+    public function where(SqlConditionFields $where): Select
     {
         /*array_filter($where, function ($value, $key) {
             if (array_key_exists('value', $value)) {
@@ -67,7 +62,9 @@ class Select extends SQL
 
     public function checkDataBeforeGenerateSqlString(): bool
     {
-        //TODO
+        if (!$this->fields || !$this->from) {
+            return false;
+        }
         return true;
     }
 
@@ -76,11 +73,15 @@ class Select extends SQL
         if (!$this->checkDataBeforeGenerateSqlString()) {
             throw new \InvalidArgumentException();
         }
-        $fieldsString = $this->fields->getSqlFieldsString() . ' ';
-        $fromString = $this->fromToString();
-        $whereString = '';
-        $joinString = '';
+        $this->sql .= $this->fields->getString();
+        $this->sql .= $this->from->getString();
 
-        return $this->sqlStartString . $this->fields . ' FROM ' . $this->from . ' WHERE ' . implode(' ', $this->where);
+//        $fieldsString = $this->fields->getString() . ' ';
+//
+//        $fromString = $this->fromToString();
+//        $whereString = '';
+//        $joinString = '';
+//
+//        return $this->sqlStartString . $this->fields . ' FROM ' . $this->from . ' WHERE ' . implode(' ', $this->where);
     }
 }
