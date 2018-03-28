@@ -75,6 +75,9 @@ class Select extends SQL
         }
         $this->sql .= $this->fields->getString();
         $this->sql .= $this->from->getString();
+        if ($this->where) {
+            $this->sql .= $this->where->getString();
+        }
 
 //        $fieldsString = $this->fields->getString() . ' ';
 //

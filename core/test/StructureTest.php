@@ -62,6 +62,12 @@ class StructureTest extends TestCase
             'email' => [
                 'condition' => '=',
                 'value' => 'test@handscream.com',
+                'operator' => 'OR',
+            ],
+            'email1' => [
+                'condition' => '=',
+                'value' => 'test@handscream.com',
+                'operator' => 'AND',
             ]
         ];
         $from = [

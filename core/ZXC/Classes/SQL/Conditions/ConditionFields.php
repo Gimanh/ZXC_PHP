@@ -15,7 +15,7 @@ abstract class ConditionFields implements SqlConditionFields
 {
     protected $conditionFields = [];
 
-    public function __construct(array $conditionFields)
+    public function __construct(array $conditionFields = [])
     {
         $this->conditionFields = $conditionFields;
     }

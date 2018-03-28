@@ -28,6 +28,7 @@ class From extends ConditionFields
         } else {
             $string = implode(',', $this->conditionFields);
         }
+        $string = ' FROM ' . $string;
         return $string;
     }
 }
