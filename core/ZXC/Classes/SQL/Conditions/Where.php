@@ -26,47 +26,59 @@ class Where extends ConditionFields
             }
             $i++;
             $string .= $field . ' ';
-
             if (isset($value['subQuery']) && !empty($value['subQuery'])) {
-
-                if (isset($value['condition'])) {
-                    $string .= $value['condition'] . ' ';
-                } else {
-                    $string .= ' = ';
-                }
-                if ($value['subQuery'] instanceof SqlConditionFields) {
-                    $string .= ' ( ' . $value['subQuery']->getString() . ' ) ';
-                } else {
-                    $string .= ' ' . $value['subQuery'] . ' ';
-                }
-
+                $string .= $this->getCondition($value);
+                $string .= $this->getSubQuery($value['subQuery']);
                 if ($i !== $length) {
-                    if (isset($value['operator'])) {
-                        $string .= $value['operator'] . ' ';
-                    } else {
-                        $string .= ' AND ';
-                    }
+                    $string .= $this->getOperator($value);
                 }
-
             } else {
-
-                if (isset($value['condition'])) {
-                    $string .= $value['condition'] . ' ? ';
-                } else {
-                    $string .= ' = ? ';
-                }
+                $string .= $this->getCondition($value) . ' ? ';
                 if ($i !== $length) {
-                    if (isset($value['operator'])) {
-                        $string .= $value['operator'] . ' ';
-                    } else {
-                        $string .= ' AND ';
-                    }
+                    $string .= $this->getOperator($value);
                 }
             }
             $this->pushValue($value['value']);
         }
         $string = ' WHERE ' . $string;
         return $string;
+    }
+
+    public function getSubQuery($sqlConditionFields): string
+    {
+        $string = '';
+        if ($sqlConditionFields['query'] instanceof SqlConditionFields) {
+            $string = ' ( ' . $sqlConditionFields['query']->getString() . ' ) ';
+        } else {
+            if (is_string($sqlConditionFields['query'])) {
+                if (!empty($sqlConditionFields['query'])) {
+                    if (strpos($sqlConditionFields['query'], '(') === false) {
+                        $string = ' ( ' . $sqlConditionFields['query'] . ' ) ';
+                    } else {
+                        $string = $sqlConditionFields['query'];
+                    }
+                }
+            }
+        }
+        return $string;
+    }
+
+    public function getOperator($value): string
+    {
+        if (isset($value['operator'])) {
+            return $value['operator'] . ' ';
+        } else {
+            return ' AND ';
+        }
+    }
+
+    public function getCondition($value): string
+    {
+        if (isset($value['condition'])) {
+            return $value['condition'] . ' ';
+        } else {
+            return ' = ';
+        }
     }
 
     public function getValues()

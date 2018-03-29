@@ -13,13 +13,7 @@ class From extends ConditionFields
             $fields = [];
             foreach ($this->conditionFields as $field => $value) {
                 if (isset($value['subQuery']) && !empty($value['subQuery'])) {
-                    if ($value['subQuery'] instanceof SqlConditionFields) {
-                        $fields[] = ' ( ' . $value['subQuery']->getString() . ' ) ';
-                        break;
-                    } else {
-                        $fields[] = ' ( ' . $value['subQuery'] . ' ) ';
-                        break;
-                    }
+                    $fields[] = $this->getSubQuery($value['subQuery']);
                 } else {
                     $fields[] = $field;
                 }
@@ -29,6 +23,28 @@ class From extends ConditionFields
             $string = implode(',', $this->conditionFields);
         }
         $string = ' FROM ' . $string;
+        return $string;
+    }
+
+    public function getSubQuery($sqlConditionFields): string
+    {
+        $string = '';
+        if ($sqlConditionFields['query'] instanceof SqlConditionFields) {
+            $string = ' ( ' . $sqlConditionFields['query']->getString() . ' ) ';
+        } else {
+            if (is_string($sqlConditionFields['query'])) {
+                if (!empty($sqlConditionFields['query'])) {
+                    if (strpos($sqlConditionFields['query'], '(') === false) {
+                        $string = ' ( ' . $sqlConditionFields['query'] . ' ) ';
+                    } else {
+                        $string = $sqlConditionFields['query'];
+                    }
+                }
+            }
+        }
+        if (array_key_exists('as', $sqlConditionFields) && $sqlConditionFields['as']) {
+            $string .= ' AS ' . $sqlConditionFields['as'] . ' ';
+        }
         return $string;
     }
 }

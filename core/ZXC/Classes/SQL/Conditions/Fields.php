@@ -9,7 +9,6 @@ class Fields extends ConditionFields
         parent::__construct($fields);
     }
 
-
     public function getStringFromFields(): string
     {
         $sqlFields = array_filter($this->conditionFields, function ($value, $key) {

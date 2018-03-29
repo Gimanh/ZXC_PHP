@@ -56,7 +56,9 @@ class StructureTest extends TestCase
                 'value' => 'headhunter',
                 'operator' => 'AND',
                 'function' => '',
-                'subQuery' => '',
+                'subQuery' => [
+                    'query' => 'SELECT company_id FROM companytable'
+                ],
                 'subCondition' => ''
             ],
             'email' => [
@@ -72,7 +74,10 @@ class StructureTest extends TestCase
         ];
         $from = [
             'zxc.users' => [
-                'subQuery' => ''
+                'subQuery' => [
+                    'query' => 'SELECT some FROM table',
+                    'as' => 'qwe'
+                ]
             ],
         ];
         $joins = [
