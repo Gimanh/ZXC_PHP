@@ -9,7 +9,7 @@ if (file_exists($file)) {
     require_once $file;
 }
 
-class StructureTest extends TestCase
+class SelectTest extends TestCase
 {
     public function testFields()
     {

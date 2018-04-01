@@ -63,6 +63,7 @@ class Select extends SQLExecute
     public function pushValue($value)
     {
         $this->valuesForSelect[] = $value;
+        return $this;
     }
 
     public function generateSql(): string
@@ -76,5 +77,14 @@ class Select extends SQLExecute
             $this->sql .= $this->where->getString();
 
         }
+        return $this->sql;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSql(): string
+    {
+        return $this->sql;
     }
 }
