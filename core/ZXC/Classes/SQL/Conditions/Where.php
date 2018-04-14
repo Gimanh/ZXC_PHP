@@ -81,7 +81,7 @@ class Where extends ConditionFields
         }
     }
 
-    public function getValues()
+    public function getValues(): array
     {
         return $this->values;
     }

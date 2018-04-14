@@ -2,6 +2,7 @@
 
 namespace ZXC\Classes\SQL;
 
+use ZXC\Classes\SQL\Conditions\Where;
 use ZXC\Interfaces\SqlConditionFields;
 
 class Select extends SQLExecute
@@ -20,13 +21,9 @@ class Select extends SQLExecute
      */
     private $join;
     /**
-     * @var $where SqlConditionFields
+     * @var $where Where
      */
     private $where;
-    /**
-     * @var array
-     */
-    private $valuesForSelect = [];
 
     public function select(SqlConditionFields $fields): Select
     {
@@ -60,12 +57,6 @@ class Select extends SQLExecute
         return true;
     }
 
-    public function pushValue($value)
-    {
-        $this->valuesForSelect[] = $value;
-        return $this;
-    }
-
     public function generateSql(): string
     {
         if (!$this->checkDataBeforeGenerateSqlString()) {
@@ -77,6 +68,7 @@ class Select extends SQLExecute
             $this->sql .= $this->where->getString();
 
         }
+        $this->sql = preg_replace('!\s+!', ' ', $this->sql);
         return $this->sql;
     }
 
@@ -86,5 +78,10 @@ class Select extends SQLExecute
     public function getSql(): string
     {
         return $this->sql;
+    }
+
+    public function getValues(): array
+    {
+        return $this->where->getValues();
     }
 }

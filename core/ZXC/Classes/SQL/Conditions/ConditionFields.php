@@ -24,6 +24,4 @@ abstract class ConditionFields implements SqlConditionFields
     {
         return $this->conditionFields;
     }
-
-
 }

@@ -11,7 +11,7 @@ if (file_exists($file)) {
 
 class SelectTest extends TestCase
 {
-    public function testFields()
+    public function testSimpleSelect()
     {
         $config = [
             'dbname' => 'hs',
@@ -24,95 +24,38 @@ class SelectTest extends TestCase
         $db = new \ZXC\Classes\SQL\DB();
         $db->initialize($config);
 
-
         $fieldsConfig = [
             'login' => [
                 'value' => '',
-                'ui' => [
-                    'show' => true,
-                    'component' => [
-                        'params' => [],
-                        'childrenComponents' => []
-                    ]
-                ]
+                'sql' => true
             ],
             'password' => [
-                'value' => '',
-                'sql' => false
-            ],
-            'password1' => [
                 'value' => '',
                 'sql' => true
             ]
         ];
-        $query = new \ZXC\Classes\SQL\Query();
-        $fields = new \ZXC\Classes\SQL\Conditions\Fields($fieldsConfig);
-        $s1 = $query::create('select');
-
-
+        $from = [
+            'zxc.users' => [],
+        ];
         $where = [
             'login' => [
                 'condition' => '=',
                 'value' => 'headhunter',
                 'operator' => 'AND',
-                'function' => '',
-                'subQuery' => [
-                    'query' => 'SELECT company_id FROM companytable'
-                ],
-                'subCondition' => ''
             ],
             'email' => [
                 'condition' => '=',
                 'value' => 'test@handscream.com',
-                'operator' => 'OR',
-            ],
-            'email1' => [
-                'condition' => '=',
-                'value' => 'test@handscream.com',
-                'operator' => 'AND',
             ]
         ];
-        $from = [
-            'zxc.users' => [
-                'subQuery' => [
-                    'query' => 'SELECT some FROM table',
-                    'as' => 'qwe'
-                ]
-            ],
-        ];
-        $joins = [
-            'session' => [
-                'as' => 'qwertySession',
-                'type' => '',
-                'on' => 'ses.id = zxc.users.id'
-            ],
-            'books' => [
-                'as' => 'userBooks',
-                'type' => 'inner',
-                'on' => 'session.id = userBooks.id'
-            ]
-        ];
+
+        $fields = new \ZXC\Classes\SQL\Conditions\Fields($fieldsConfig);
         $from = new \ZXC\Classes\SQL\Conditions\From($from);
         $where = new \ZXC\Classes\SQL\Conditions\Where($where);
-        $joins = new \ZXC\Classes\SQL\Conditions\Join($joins);
 
-        $stop = $s1->select($fields)->from($from)->where($where)->join($joins)->generateSql();
-        $stop = false;
-
-
-        $fields = [
-            'email' => [
-                'type' => 'integer',
-                'ui' => [
-                    'showField' => true,
-                    'component' => [
-                        'name' => 'v-tab',
-                        'params' => [
-                            'value' => ''
-                        ]
-                    ]
-                ]
-            ]
-        ];
+        $query = new \ZXC\Classes\SQL\Query();
+        $s1 = $query::create('select');
+        $selectString = $s1->select($fields)->from($from)->where($where)->generateSql();
+        $this->assertSame($selectString, 'SELECT login, password FROM zxc.users WHERE login = ? AND email = ? ');
     }
 }

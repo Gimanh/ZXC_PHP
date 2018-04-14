@@ -64,7 +64,7 @@ class DB
             && isset($config['password']) && isset($config['user']);
     }
 
-    public function exec($query, array $params = [])
+    public function exec(string $query, array $params = [])
     {
         try {
             $resultArr = [];
