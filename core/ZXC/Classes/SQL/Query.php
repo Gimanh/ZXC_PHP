@@ -9,6 +9,7 @@ final class Query
         if ($type === 'select') {
             return new Select();
         }
-        throw new \InvalidArgumentException('Unknown type ' . $type);
+
+        throw new \InvalidArgumentException('Unknown query type ' . $type);
     }
 }
