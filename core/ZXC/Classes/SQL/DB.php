@@ -102,4 +102,12 @@ class DB
     {
         return $this->pdo->lastInsertId();
     }
+
+    /**
+     * @return mixed
+     */
+    public function getDsn()
+    {
+        return $this->dsn;
+    }
 }

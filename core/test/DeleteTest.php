@@ -32,8 +32,9 @@ class DeleteTest extends TestCase
         $where = new \ZXC\Classes\SQL\Conditions\Where($where);
 
         $query = new \ZXC\Classes\SQL\Query();
-        $s1 = $query::create('delete');
-        $selectString = $s1->delete()->from($from)->where($where)->generateSql();
+        $delete = $query::create('delete');
+        $selectString = $delete->delete()->from($from)->where($where)->generateSql();
         $this->assertSame($selectString, 'DELETE FROM zxc.users WHERE login = ? AND email = ? ');
+        $this->assertSame($delete->getValues(), ['headhunter', 'test@handscream.com']);
     }
 }

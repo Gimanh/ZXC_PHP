@@ -87,6 +87,6 @@ class ZXCTest extends TestCase
         $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
 
         $zxc->initialize($config);
-        $this->assertSame($zxc->go(), 'fakeMethod');
+        $this->assertTrue($zxc->go());
     }
 }

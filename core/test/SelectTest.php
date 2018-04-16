@@ -54,8 +54,9 @@ class SelectTest extends TestCase
         $where = new \ZXC\Classes\SQL\Conditions\Where($where);
 
         $query = new \ZXC\Classes\SQL\Query();
-        $s1 = $query::create('select');
-        $selectString = $s1->select($fields)->from($from)->where($where)->generateSql();
+        $select = $query::create('select');
+        $selectString = $select->select($fields)->from($from)->where($where)->generateSql();
         $this->assertSame($selectString, 'SELECT login, password FROM zxc.users WHERE login = ? AND email = ? ');
+        $this->assertSame($select->getValues(), ['headhunter', 'test@handscream.com']);
     }
 }

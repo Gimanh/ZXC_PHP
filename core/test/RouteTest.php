@@ -358,8 +358,10 @@ class RouteTest extends TestCase
             ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
 
 
-        $routeParams = $this->router->getRouteWithParamsFromURI('/example/userTest/secondParameters', 'POST');
-        $this->assertFalse($routeParams);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->router->getRouteWithParamsFromURI('/example/userTest/secondParameters', 'POST');
+//        $routeParams = $this->router->getRouteWithParamsFromURI('/example/userTest/secondParameters', 'POST');
+//        $this->assertFalse($routeParams);
     }
 
     public function testExceptionInInitialize()
