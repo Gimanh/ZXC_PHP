@@ -15,6 +15,9 @@ final class Query
         if ($type === 'delete') {
             return new Delete();
         }
+        if ($type === 'insert') {
+            return new Insert();
+        }
 
         throw new \InvalidArgumentException('Unknown query type ' . $type);
     }
