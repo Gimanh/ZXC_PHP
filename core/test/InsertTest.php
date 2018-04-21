@@ -40,7 +40,7 @@ class InsertTest extends TestCase
         ];
 
         $table = new \ZXC\Classes\SQL\Conditions\Table($table);
-        $where = new \ZXC\Classes\SQL\Conditions\InsertedFields($where);
+        $where = new \ZXC\Classes\SQL\Conditions\InsertFields($where);
 
         $query = new \ZXC\Classes\SQL\Query();
         $insert = $query::create('insert');

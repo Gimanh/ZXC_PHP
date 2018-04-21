@@ -3,7 +3,7 @@
 namespace ZXC\Classes\SQL\Conditions;
 
 
-class InsertedFields extends ConditionFields
+class InsertFields extends ConditionFields
 {
     protected $values = [];
 
