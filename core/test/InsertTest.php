@@ -11,7 +11,7 @@ if (file_exists($file)) {
 
 class InsertTest extends TestCase
 {
-    public function testSimpleSelect()
+    public function testSimpleInsert()
     {
         $config = [
             'dbname' => 'hs',
@@ -27,7 +27,7 @@ class InsertTest extends TestCase
         $table = [
             'zxc.users' => [],
         ];
-        $where = [
+        $insertedFields = [
             'login' => [
                 'condition' => '=',
                 'value' => 'headhunter',
@@ -40,11 +40,11 @@ class InsertTest extends TestCase
         ];
 
         $table = new \ZXC\Classes\SQL\Conditions\Table($table);
-        $where = new \ZXC\Classes\SQL\Conditions\InsertFields($where);
+        $insertedFields = new \ZXC\Classes\SQL\Conditions\InsertFields($insertedFields);
 
         $query = new \ZXC\Classes\SQL\Query();
         $insert = $query::create('insert');
-        $insertString = $insert->insert($table)->fields($where)->generateSql();
+        $insertString = $insert->insert($table)->fields($insertedFields)->generateSql();
         $this->assertSame($insertString, 'INSERT INTO zxc.users (login, email) VALUES (?, ?) ');
         $this->assertSame($insert->getValues(), ['headhunter', 'test@handscream.com']);
     }

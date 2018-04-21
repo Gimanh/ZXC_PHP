@@ -2,31 +2,41 @@
 
 namespace ZXC\Classes\SQL;
 
-use ZXC\Classes\SQL\Conditions\InsertFields;
+use ZXC\Classes\SQL\Conditions\UpdateFields;
 use ZXC\Classes\SQL\Conditions\Where;
 use ZXC\Interfaces\SqlConditionFields;
 
-class Insert
+class Update
 {
-    private $sql = 'INSERT INTO ';
+    private $sql = 'UPDATE ';
     /**
      * @var $table SqlConditionFields
      */
     private $table;
     /**
-     * @var $fields InsertFields
+     * @var $fields UpdateFields
      */
     private $fields;
+    /**
+     * @var $where Where
+     */
+    private $where;
 
-    public function insert(SqlConditionFields $table): Insert
+    public function update(SqlConditionFields $table): Update
     {
         $this->table = $table;
         return $this;
     }
 
-    public function fields(SqlConditionFields $fields): Insert
+    public function fields(SqlConditionFields $fields): Update
     {
         $this->fields = $fields;
+        return $this;
+    }
+
+    public function where(Where $where): Update
+    {
+        $this->where = $where;
         return $this;
     }
 
@@ -45,6 +55,9 @@ class Insert
         }
         $this->sql .= $this->table->getString();
         $this->sql .= $this->fields->getString();
+        if ($this->where) {
+            $this->sql .= $this->where->getString();
+        }
         $this->sql = preg_replace('!\s+!', ' ', $this->sql);
         return $this->sql;
     }
@@ -59,6 +72,11 @@ class Insert
 
     public function getValues(): array
     {
-        return $this->fields->getValues();
+        $fieldsValues = $this->fields->getValues();
+        if ($this->where) {
+            $whereValues = $this->where->getValues();
+            $fieldsValues = array_merge($fieldsValues, $whereValues);
+        }
+        return $fieldsValues;
     }
 }

@@ -18,6 +18,9 @@ final class Query
         if ($type === 'insert') {
             return new Insert();
         }
+        if ($type === 'update') {
+            return new Update();
+        }
 
         throw new \InvalidArgumentException('Unknown query type ' . $type);
     }
