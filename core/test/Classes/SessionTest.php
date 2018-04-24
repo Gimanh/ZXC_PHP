@@ -2,13 +2,6 @@
 
 use PHPUnit\Framework\TestCase;
 
-$dir = __DIR__;
-$config = [];
-$file = $dir . '/../index.php';
-if (file_exists($file)) {
-    require_once $file;
-}
-
 class SessionTest extends TestCase
 {
     /**

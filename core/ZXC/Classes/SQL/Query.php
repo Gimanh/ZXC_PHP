@@ -9,19 +9,21 @@ final class Query
         if ($type) {
             $type = strtolower($type);
         }
-        if ($type === 'select') {
-            return new Select();
+        switch ($type) {
+            case 'select':
+                return new Select();
+                break;
+            case 'insert':
+                return new Insert();
+                break;
+            case 'update':
+                return new Update();
+                break;
+            case 'delete':
+                return new Delete();
+                break;
+            default:
+                throw new \InvalidArgumentException('Unknown query type ' . $type);
         }
-        if ($type === 'delete') {
-            return new Delete();
-        }
-        if ($type === 'insert') {
-            return new Insert();
-        }
-        if ($type === 'update') {
-            return new Update();
-        }
-
-        throw new \InvalidArgumentException('Unknown query type ' . $type);
     }
 }
