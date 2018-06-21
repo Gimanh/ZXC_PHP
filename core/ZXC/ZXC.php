@@ -119,6 +119,9 @@ class ZXC
             /**
              * @var $routeParams Route
              */
+            if (!$this->router) {
+                throw new \Exception('Router config is not defined');
+            }
             $routeParams = $this->router->getRouteWithParamsFromURI($this->request->getPath(),
                 $this->request->getMethod());
             $routeHandler = $routeParams->executeRoute($this);
