@@ -124,6 +124,9 @@ class ZXC
             }
             $routeParams = $this->router->getRouteWithParamsFromURI($this->request->getPath(),
                 $this->request->getMethod());
+            if (!$routeParams) {
+                throw new \Exception('Can not get router params');
+            }
             $routeHandler = $routeParams->executeRoute($this);
             Response::setResponseHttpCode(200);
             $body = ob_get_clean();
