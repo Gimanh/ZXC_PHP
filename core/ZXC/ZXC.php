@@ -49,6 +49,7 @@ class ZXC
             if ($haveLoggerConfig) {
                 $this->logger = new Logger($haveLoggerConfig);
             }
+
             $haveRouterConfig = Config::get('ZXC/Router');
             if ($haveRouterConfig) {
                 $this->router = Router::getInstance();

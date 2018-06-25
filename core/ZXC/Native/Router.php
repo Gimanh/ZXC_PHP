@@ -2,9 +2,10 @@
 
 namespace ZXC\Native;
 
+use ZXC\Interfaces\ZXCCore;
 use ZXC\Patterns\Singleton;
 
-class Router
+class Router implements ZXCCore
 {
     use Singleton;
     private $routes = [];

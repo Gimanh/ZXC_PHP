@@ -1,0 +1,23 @@
+@startuml
+interface SQL{
+    + getSQLString()
+    + exec(DB $instance)
+}
+
+class Select implements SQL
+
+class Delete implements SQL
+
+class Update implements SQL
+
+class Insert implements SQL
+
+interface SimpleFields{
+    +generateString();
+}
+
+interface ConditionsFields{
+    +generateString();
+}
+
+@enduml

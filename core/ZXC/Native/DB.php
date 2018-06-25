@@ -1,6 +1,6 @@
 <?php
 
-namespace ZXC\Classes\SQL;
+namespace ZXC\Native;
 
 class DB
 {

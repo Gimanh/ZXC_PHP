@@ -5,8 +5,9 @@ namespace ZXC\Native;
 use DateTime;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LoggerInterface;
+use ZXC\Interfaces\ZXCCore;
 
-class Logger extends AbstractLogger implements LoggerInterface
+class Logger extends AbstractLogger implements LoggerInterface, ZXCCore
 {
     private $dateFormat = DateTime::RFC2822;
     private $filePath;
@@ -30,8 +31,9 @@ class Logger extends AbstractLogger implements LoggerInterface
             if (!file_exists($this->filePath)) {
                 touch($this->filePath);
             }
+            return true;
         } else {
-            throw new \InvalidArgumentException();
+            return false;
         }
     }
 

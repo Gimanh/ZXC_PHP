@@ -14,7 +14,7 @@ class DBTest extends TestCase
             'user' => 'postgres',
             'password' => '123456',
         ];
-        $db = new \ZXC\Classes\SQL\DB();
+        $db = new \ZXC\Native\DB();
         $db->initialize($config);
         $this->assertSame($db->getDsn(), 'pgsql:dbname=hs;host=localhost;port=5433');
     }

@@ -2,9 +2,10 @@
 
 namespace ZXC\Classes;
 
+use ZXC\Interfaces\ZXCCore;
 use ZXC\Patterns\Singleton;
 
-class Session
+class Session implements ZXCCore
 {
     use Singleton;
     protected $lifeTime;
@@ -16,6 +17,7 @@ class Session
 
     /**
      * @param array $config
+     * @return bool
      * @throws \Exception
      */
     public function initialize(array $config = [])
@@ -52,6 +54,7 @@ class Session
         session_set_cookie_params($this->lifeTime, $this->path, $this->domain);
         $this->start();
         $this->session = &$_SESSION;
+        return true;
     }
 
     public function set($key, $val)

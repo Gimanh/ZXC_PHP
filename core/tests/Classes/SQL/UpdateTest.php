@@ -14,7 +14,7 @@ class UpdateTest extends TestCase
             'user' => 'postgres',
             'password' => '123456',
         ];
-        $db = new \ZXC\Classes\SQL\DB();
+        $db = new \ZXC\Native\DB();
         $db->initialize($config);
 
         $tableConfig = [
@@ -62,7 +62,7 @@ class UpdateTest extends TestCase
             'user' => 'postgres',
             'password' => '123456',
         ];
-        $db = new \ZXC\Classes\SQL\DB();
+        $db = new \ZXC\Native\DB();
         $db->initialize($config);
 
         $tableConfig = [

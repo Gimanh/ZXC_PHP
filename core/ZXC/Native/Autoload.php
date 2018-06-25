@@ -6,11 +6,14 @@ require_once ZXC_ROOT . DIRECTORY_SEPARATOR . 'ZXC' . DIRECTORY_SEPARATOR . 'Pat
     . 'Singleton.php';
 require_once ZXC_ROOT . DIRECTORY_SEPARATOR . 'ZXC' . DIRECTORY_SEPARATOR
     . 'Native' . DIRECTORY_SEPARATOR . 'Helper.php';
+require_once ZXC_ROOT . DIRECTORY_SEPARATOR . 'ZXC' . DIRECTORY_SEPARATOR
+    . 'Interfaces' . DIRECTORY_SEPARATOR . 'ZXCCore.php';
 
 
+use ZXC\Interfaces\ZXCCore;
 use ZXC\Patterns\Singleton;
 
-class Autoload
+class Autoload implements ZXCCore
 {
     use Singleton;
     private static $autoloadDirectories = ['' => true];
@@ -18,12 +21,15 @@ class Autoload
     /**
      * Initialize autoload directories
      * @param array $config ['dirPath'=>true]
+     * @return bool
      */
     public function initialize(array $config = [])
     {
         if ($config) {
             $this->setAutoloadDirectories($config);
+            return true;
         }
+        return false;
     }
 
     /**

@@ -2,9 +2,10 @@
 
 namespace ZXC\Native\HTTP;
 
+use ZXC\Interfaces\ZXCCore;
 use ZXC\Patterns\Singleton;
 
-class Request
+class Request implements ZXCCore
 {
     use Singleton;
 
@@ -108,6 +109,7 @@ class Request
         $this->scheme = (!empty($server['HTTPS']) && $server['HTTPS'] !== 'off' || $server['SERVER_PORT'] == 443) ? "https://" : "http://";
         $this->protocol = $this->server['SERVER_PROTOCOL'];
         $this->normalize();
+        return true;
     }
 
     public function normalize()
