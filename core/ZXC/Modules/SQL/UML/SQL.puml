@@ -12,12 +12,30 @@ class Update implements SQL
 
 class Insert implements SQL
 
-interface SimpleFields{
-    +generateString();
+interface SQLFields{
+    +getString();
 }
 
-interface ConditionsFields{
-    +generateString();
+interface SimpleFields extends SQLFields{
+
 }
+
+interface ConditionsFields extends SQLFields{
+    +getValues()
+}
+
+abstract SchemeStructure{
+    +select($schemeStructure)
+    +delete($schemeStructure)
+    +update($schemeStructure)
+    +insert($schemeStructure)
+}
+
+/'interface StructureData{
+    +create()
+    +read()
+    +update()
+    +delete()
+}'/
 
 @enduml
