@@ -1,15 +1,19 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: nikolaygiman
- * Date: 26/06/2018
- * Time: 00:09
- */
 
 namespace ZXC\Modules\SQL;
 
+use ZXC\Native\DB;
 
-class Select
+class Select implements SQL
 {
 
+    public static function getSQLString()
+    {
+        // TODO: Implement getSQLString() method.
+    }
+
+    public static function exec(DB $db)
+    {
+        // TODO: Implement exec() method.
+    }
 }
