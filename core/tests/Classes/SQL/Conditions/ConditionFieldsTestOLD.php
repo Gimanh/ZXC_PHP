@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-class ConditionFieldsTest extends TestCase
+class ConditionFieldsTestOLD extends TestCase
 {
     public function testGetStringFromFields()
     {

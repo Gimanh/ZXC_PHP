@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-class DeleteTest extends TestCase
+class DeleteTestOLD extends TestCase
 {
     public function testSimpleDelete()
     {

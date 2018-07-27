@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-class SelectTest extends TestCase
+class SelectTestOLD extends TestCase
 {
     public function testSimpleSelect()
     {

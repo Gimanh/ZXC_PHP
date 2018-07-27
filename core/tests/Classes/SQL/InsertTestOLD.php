@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-class InsertTest extends TestCase
+class InsertTestOLD extends TestCase
 {
     public function testSimpleInsert()
     {

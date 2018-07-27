@@ -2,6 +2,7 @@
 interface SQL{
     + getSQLString()
     + exec(DB $instance)
+    + join($mode)
 }
 
 class Select implements SQL

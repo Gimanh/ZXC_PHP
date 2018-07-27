@@ -8,5 +8,7 @@ interface SQL
 {
     public static function getSQLString();
 
+    public static function join($mode);
+
     public static function exec(DB $db);
 }

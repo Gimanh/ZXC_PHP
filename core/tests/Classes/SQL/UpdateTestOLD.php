@@ -2,7 +2,7 @@
 
 use \PHPUnit\Framework\TestCase;
 
-class UpdateTest extends TestCase
+class UpdateTestOLD extends TestCase
 {
     public function testSimpleUpdate()
     {

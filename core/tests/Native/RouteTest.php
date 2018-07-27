@@ -85,7 +85,7 @@ class RouteTest extends TestCase
      */
     public $router;
 
-    public function __construct(?string $name = null, array $data = [], string $dataName = '')
+    public function __construct(string $name = null, array $data = [], string $dataName = '')
     {
         $routerConfig = [
             [
