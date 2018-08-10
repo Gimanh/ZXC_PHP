@@ -25,7 +25,7 @@ class RequestTest extends TestCase
 
         $request = \ZXC\Native\HTTP\Request::getInstance();
         $request->initialize($server);
-        $this->assertSame($request->getBaseRoute(), '/');
+        $this->assertSame($request->getBaseRoute(), DIRECTORY_SEPARATOR);
         $this->assertSame($request->getPath(), '/user');
 
         $server['REQUEST_URI'] = '/zxc/user?registerUser=%7B+%22password1%22%3A+%22123456%22%2C+%22password2%22%3A+%22123456%22%2C+%22login%22%3A%22head%22%2C+%22email%22%3A+%22head%40mail.ru%22+%7D&loginUser=%7B+%22password%22%3A+%22123456%22%2C+%22email%22%3A+%22head%40mail.ru%22%2C+%22remember%22%3A+true%7D';

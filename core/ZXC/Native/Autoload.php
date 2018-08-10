@@ -107,7 +107,6 @@ class Autoload implements ZXCCore
     /**
      * Require file
      * @param string $className
-     * @return bool
      */
     public static function autoload($className)
     {
@@ -115,9 +114,9 @@ class Autoload implements ZXCCore
         $fileClass = str_replace('\\', DIRECTORY_SEPARATOR, $className);
         if (strpos($className, 'ZXC') === 0) {
             $file = ZXC_ROOT . DIRECTORY_SEPARATOR . $fileClass . '.php';
-            if (!is_file($file)) {
-                return false;
-            }
+//            if (!is_file($file)) {
+//                return false;
+//            }
         } else {
             if (!empty(self::$autoloadDirectories)) {
                 foreach (self::$autoloadDirectories as $dir => $val) {
@@ -141,7 +140,7 @@ class Autoload implements ZXCCore
             require_once $file;
         }
 
-        return false;
+//        return false;
     }
 }
 

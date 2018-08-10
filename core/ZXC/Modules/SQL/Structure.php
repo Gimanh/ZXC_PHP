@@ -2,22 +2,13 @@
 
 namespace ZXC\Modules\SQL;
 
-class Structure implements \ZXC\Interfaces\Modules\SQL\Structure
+class Structure
 {
-    private static $structures = [];
+    private $fields;
+    private $tableName;
 
-    public static function getStructureByName($structureName)
+    public function __construct(array $structureParams = [])
     {
-        // TODO: Implement getStructureByName() method.
-    }
 
-    public static function getStructureByTable($structureName)
-    {
-        // TODO: Implement getStructureByTable() method.
-    }
-
-    public static function registerStructure(array $structure)
-    {
-        // TODO: Implement registerStructure() method.
     }
 }

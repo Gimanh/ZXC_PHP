@@ -1,11 +1,14 @@
 0|core/ZXC/Interfaces/Module/SQL/SQL.php
 1532699187|core/ZXC/Interfaces/Modules/SQL/Fields.php
 1532692368|core/ZXC/Interfaces/Modules/SQL/SQL.php
-1532699144|core/ZXC/Interfaces/Modules/SQL/Structure.php
+1533912579|core/ZXC/Interfaces/Modules/SQL/Structure.php
+1533910143|core/ZXC/Interfaces/Modules/SQL/StructureControl.php
 0|core/ZXC/Modules/SQL/SQL.php
 1532698415|core/ZXC/Modules/SQL/Select.php
-1532699256|core/ZXC/Modules/SQL/Structure.php
+1533912579|core/ZXC/Modules/SQL/Structure.php
+1533910142|core/ZXC/Modules/SQL/StructureControl.php
 1532698330|core/ZXC/Modules/SQL/UML/SQL.puml
+1533904684|core/ZXC/Native/Autoload.php
 0|core/tests/Classes/SQL/Conditions/ConditionFieldsTest.php
 1532698065|core/tests/Classes/SQL/Conditions/ConditionFieldsTestOLD.php
 0|core/tests/Classes/SQL/DBTest.php
@@ -18,6 +21,8 @@
 0|core/tests/Classes/SQL/UpdateTest.php
 1532698065|core/tests/Classes/SQL/UpdateTestOLD.php
 1532698415|core/tests/Modules/SQL/SelectTest.php
-1532699331|core/tests/Modules/SQL/StructureTest.php
+1533912005|core/tests/Modules/SQL/StructureControlTest.php
+1533913265|core/tests/Modules/SQL/StructureTest.php
 1532345358|core/tests/Native/DBTest.php
+1533890258|core/tests/Native/HTTP/RequestTest.php
 1532698098|core/tests/Native/RouteTest.php
