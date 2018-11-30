@@ -1,0 +1,16 @@
+@startuml
+
+interface IStructure{
+    + select()
+    + delete()
+    + insert()
+    + update()
+}
+interface IStructureSQL implements IStructure{
+    + getFieldsString()
+    + withJoin()
+    + withWhere()
+    + withInsert()
+}
+
+@enduml

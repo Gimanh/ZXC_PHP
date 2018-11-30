@@ -2,14 +2,15 @@
 
 namespace ZXC\Native;
 
-use ZXC\Interfaces\ZXCCore;
 use ZXC\Patterns\Singleton;
+use ZXC\ZXC;
 
-class Router implements ZXCCore
+class Router
 {
     use Singleton;
+    private $middleware = null;
     private $routes = [];
-    private $routeTypes = ['POST' => true, 'GET' => true];
+    private $allowedMethods = ['POST' => true, 'GET' => true, 'OPTIONS' => true];
 
     /**
      * Initialize router
@@ -26,14 +27,41 @@ class Router implements ZXCCore
      */
     public function initialize(array $config = [])
     {
-        if (!$config) {
-            throw new \InvalidArgumentException('Undefined $params');
+        if (!$config || !isset($config['routes'])) {
+            throw new \InvalidArgumentException('Undefined routes in Router config');
         }
-
-        foreach ($config as $routeParams) {
+        if (isset($config['methods'])) {
+            $this->allowedMethods = $config['methods'];
+        }
+        if (isset($config['middleware'])) {
+            $this->middleware = $config['middleware'];
+        }
+        foreach ($config['routes'] as $routeParams) {
             $this->initializeRouteInstance($routeParams);
         }
 
+        return true;
+    }
+
+    public function callMiddleware()
+    {
+        if (!$this->middleware) {
+            return false;
+        }
+        foreach ($this->middleware as $key => $value) {
+            if (is_callable($this->middleware[$key])) {
+                call_user_func_array($this->middleware[$key], [ZXC::getInstance()]);
+            } else {
+                $classMethod = explode(':', $this->middleware[$key]);
+                $class = $classMethod[0];
+                $method = $classMethod[1];
+                $class = Helper::createInstanceOfClass($class);
+                if (!$class) {
+                    throw new \InvalidArgumentException('Can not create Instance Of Class ' . $class);
+                }
+                call_user_func_array([$class, $method], [ZXC::getInstance()]);
+            }
+        }
         return true;
     }
 
@@ -52,7 +80,7 @@ class Router implements ZXCCore
     private function registerRouteInstance(Route $parsedRoute)
     {
         $parsedRouteType = $parsedRoute->getRequestMethod();
-        if (isset($this->routeTypes[$parsedRouteType]) && $this->routeTypes[$parsedRouteType] === true) {
+        if (isset($this->allowedMethods[$parsedRouteType]) && $this->allowedMethods[$parsedRouteType] === true) {
             $this->routes[$parsedRouteType][$parsedRoute->getRoutePath()] = $parsedRoute;
         }
 
@@ -67,8 +95,8 @@ class Router implements ZXCCore
     public function disableRouterType($type)
     {
         $type = strtoupper($type);
-        if (isset($this->routeTypes[$type])) {
-            $this->routeTypes[$type] = false;
+        if (isset($this->allowedMethods[$type])) {
+            $this->allowedMethods[$type] = false;
 
             return true;
         }
@@ -79,8 +107,8 @@ class Router implements ZXCCore
     public function enableRouterType($type)
     {
         $type = strtoupper($type);
-        if (isset($this->routeTypes[$type])) {
-            $this->routeTypes[$type] = true;
+        if (isset($this->allowedMethods[$type])) {
+            $this->allowedMethods[$type] = true;
 
             return true;
         }
@@ -92,16 +120,16 @@ class Router implements ZXCCore
      * Returns all registered route types
      * @return array
      */
-    public function getRouteTypes(): array
+    public function getAllowedMethods()
     {
-        return $this->routeTypes;
+        return $this->allowedMethods;
     }
 
     /**
      * Returns all registered routes
      * @return array
      */
-    public function getRoutes(): array
+    public function getRoutes()
     {
         return $this->routes;
     }

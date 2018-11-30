@@ -105,6 +105,7 @@ class Route
      */
     public function parseRouteString($routeParams)
     {
+        $routeParams['route'] = preg_replace('!\s+!', '', $routeParams['route']);
         $params = explode('|', $routeParams['route']);
         $paramsCount = count($params);
         if (!$params || $paramsCount < 2) {
@@ -176,7 +177,7 @@ class Route
         $pattern = preg_replace('#\(/\)#', '/?', $pattern);
 
         // Create capture group for ":parameter"
-        $allowedParamChars = '[a-zA-Z0-9\_\-]+';
+        $allowedParamChars = '[a-zA-Z0-9\_\-\@\.]+';
         $pattern = preg_replace(
             '/:(' . $allowedParamChars . ')/',   # Replace ":parameter"
             '(?<$1>' . $allowedParamChars . ')',
@@ -277,16 +278,16 @@ class Route
         $paramsForSecondRouteArguments['routeParams'] = $this->routeURIParams;
 
         if ($this->useCommonClassInstance) {
-            $this->commonClassInstance = $this->createInstanseOfClass($this->commonClassName);
+            $this->commonClassInstance = $this->createInstanceOfClass($this->commonClassName);
         }
 
         if ($this->class && class_exists($this->class)) {
             if ($this->commonClassInstance && get_class($this->commonClassInstance) !== $this->class) {
-                $userClass = $this->createInstanseOfClass($this->class);
+                $userClass = $this->createInstanceOfClass($this->class);
             } elseif ($this->commonClassInstance) {
                 $userClass = $this->commonClassInstance;
             } else {
-                $userClass = $this->createInstanseOfClass($this->class);
+                $userClass = $this->createInstanceOfClass($this->class);
             }
             $resultFromBeforeMethod = $this->callBefore($zxc);
             if (method_exists($userClass, $this->classMethod)) {
@@ -337,7 +338,7 @@ class Route
                     if ($this->commonClassInstance && get_class($this->commonClassInstance) === $this->before['class']) {
                         $userClassBefore = $this->commonClassInstance;
                     } else {
-                        $userClassBefore = $this->createInstanseOfClass($this->before['class']);
+                        $userClassBefore = $this->createInstanceOfClass($this->before['class']);
                     }
                     if ($this->hooksResultTransfer) {
                         $resultBefore = call_user_func_array(
@@ -380,7 +381,7 @@ class Route
                     if ($this->commonClassInstance && get_class($this->commonClassInstance) === $this->after['class']) {
                         $userClassBefore = $this->commonClassInstance;
                     } else {
-                        $userClassBefore = $this->createInstanseOfClass($this->after['class']);
+                        $userClassBefore = $this->createInstanceOfClass($this->after['class']);
                     }
                     if ($this->hooksResultTransfer) {
                         $resultAfter = call_user_func_array(
@@ -411,8 +412,8 @@ class Route
         }
         return $resultAfter;
     }
-
-    private function createInstanseOfClass($className)
+    //TODO add this function to Helper
+    public function createInstanceOfClass($className)
     {
         if (!$className) {
             throw new \InvalidArgumentException();
@@ -423,7 +424,7 @@ class Route
         return new $className;
     }
 
-    public function classUsesTrait($className, string $traitName)
+    public function classUsesTrait($className, $traitName)
     {
         $traits = class_uses($className, true);
         if ($traits) {

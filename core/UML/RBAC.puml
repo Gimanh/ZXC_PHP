@@ -1,0 +1,35 @@
+@startuml
+interface EditableObject{
+    + isOwner();
+}
+
+interface IRole{
+    + getRolesByUserId();
+    + hasRole();
+}
+
+interface IPermissions{
+    + getPermissionsByRoleId();
+    + hasPermission();
+}
+
+class Role implements IRole{
+    # roles = [];
+}
+
+class Permissions implements IPermissions{
+    # permissions = [];
+}
+
+class RBAC{
+    + can($permission);
+}
+
+RBAC --> Permissions
+RBAC --> Role
+
+class User extends RBAC implements EditableObject{
+
+}
+
+@enduml

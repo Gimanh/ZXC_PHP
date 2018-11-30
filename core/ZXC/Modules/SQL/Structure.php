@@ -1,14 +1,15 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: nikolaygiman
+ * Date: 18/10/2018
+ * Time: 23:14
+ */
 
 namespace ZXC\Modules\SQL;
 
-class Structure
+
+class Structure extends AbstractFactoryMethod
 {
-    private $fields;
-    private $tableName;
 
-    public function __construct(array $structureParams = [])
-    {
-
-    }
 }

@@ -2,6 +2,24 @@
 
 use PHPUnit\Framework\TestCase;
 
+function callbackHelper($a, $b, $c)
+{
+    return $a + $b + $c;
+}
+
+class Qwe
+{
+    public function ert($str, $int)
+    {
+        return $str === 'string1' && $int === 123;
+    }
+
+    public static function stErt($str, $int)
+    {
+        return $str === 'string1' && $int === 123;
+    }
+}
+
 class HelperTest extends TestCase
 {
     public function testIsAssoc()
@@ -276,5 +294,99 @@ class HelperTest extends TestCase
         ];
         $resultTextWithIgnore = $helper::generateRandomText(7, 7, false, $alphabetIgnore);
         $this->assertSame($resultTextWithIgnore, '1111111');
+    }
+
+    public function testIssetKeys()
+    {
+        $arr = [
+            'field1' => 'v1',
+            'field2' => 'v2',
+            'field3' => 'v3',
+            'field4' => null,
+        ];
+
+        $this->assertTrue(\ZXC\Native\Helper::issetKeys($arr, [
+            'field1'
+        ]));
+        $this->assertTrue(\ZXC\Native\Helper::issetKeys($arr, [
+            'field1',
+            'field2',
+            'field3'
+        ]));
+        $this->assertTrue(\ZXC\Native\Helper::issetKeys($arr, [
+            'field1',
+            'field2',
+            'field4'
+        ]));
+        $this->assertFalse(\ZXC\Native\Helper::issetKeys($arr, [
+            'field1',
+            'field2',
+            'field4',
+            'field5',
+        ]));
+    }
+
+    public function testGetConvertedArrayForStructureByKeys()
+    {
+        $arr = [
+            'field1' => 'v1',
+            'field2' => 'v2',
+            'field3' => 'v3',
+            'field4' => null,
+        ];
+        $r1 = \ZXC\Native\Helper::getConvertedArrayForStructureByKeys($arr, ['field1']);
+        $this->assertSame(['field1' => ['value' => 'v1']], $r1);
+
+        $r2 = \ZXC\Native\Helper::getConvertedArrayForStructureByKeys($arr, ['field1', 'field5']);
+        $this->assertFalse($r2);
+
+        $r3 = \ZXC\Native\Helper::getConvertedArrayForStructureByKeys($arr, ['field1', 'field2', 'field3']);
+        $this->assertSame([
+            'field1' => ['value' => 'v1'],
+            'field2' => ['value' => 'v2'],
+            'field3' => ['value' => 'v3']
+        ], $r3);
+
+        $r3 = \ZXC\Native\Helper::getConvertedArrayForStructureByKeys($arr, ['field1', 'field2', 'field3', 'field4']);
+        $this->assertSame([
+            'field1' => ['value' => 'v1'],
+            'field2' => ['value' => 'v2'],
+            'field3' => ['value' => 'v3'],
+            'field4' => ['value' => null]
+        ], $r3);
+    }
+
+    public function testFixSlashes()
+    {
+        $path = 'a' . DIRECTORY_SEPARATOR . 'b' . DIRECTORY_SEPARATOR . 'qwerty.js';
+        $result = \ZXC\Native\Helper::fixDirectorySlashes('a/b\qwerty.js');
+        $this->assertSame($path, $result);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testCallCallback()
+    {
+        $a = 1;
+        $b = 2;
+        $c = 3;
+
+        $resultGlobalFunc = \ZXC\Native\Helper::callCallback('callbackHelper', $a, $b, $c);
+        $this->assertSame(6, $resultGlobalFunc);
+
+        $methodResult = \ZXC\Native\Helper::callCallback('Qwe:ert', 'string1', 123);
+        $this->assertTrue($methodResult);
+
+        $methodResult = \ZXC\Native\Helper::callCallback('Qwe:stErt', 'string1', 123);
+        $this->assertTrue($methodResult);
+
+        $methodResult = \ZXC\Native\Helper::callCallback(function ($str, $int) {
+            return $str === 'string2' && $int === 1212;
+        }, 'string1', 123);
+        $this->assertFalse($methodResult);
+
+        \ZXC\Native\Helper::callCallback('callbackHelpeasdfasdfkljfasdr', $a, $b, $c);
+
     }
 }
