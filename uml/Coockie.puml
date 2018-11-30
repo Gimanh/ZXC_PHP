@@ -1,0 +1,10 @@
+@startuml
+
+class Cookie{
+    {static} + exists($name)
+    {static} + get($name)
+    {static} + set($name, $value, $expire)
+    {static} + delete($name)
+}
+
+@enduml

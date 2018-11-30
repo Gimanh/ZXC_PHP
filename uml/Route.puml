@@ -1,0 +1,35 @@
+@startuml
+
+class Route{
+
+    - $type;
+    - $route;
+    - $reg;
+    - $class;
+    - $method;
+    - $func;
+    - $params;
+    - $beforeHookHandler
+    - $afterHookHandler
+    - $hooksResultTransfer
+    - $children
+
+    +  __construct(array $params = [])
+    +  getType()
+    +  getRoute()
+    +  getReg()
+    +  getClass()
+    +  getMethod()
+    +  getFunc()
+    +  getParams()
+    +  setParams($params)
+    -  callBeforeHookHandler(ZXC $zxc, $mainClass = null)
+    -  callAfterHookHandler(ZXC $zxc, $resultMain = null, $mainClass = null)
+    +  classUseTrait($className, $traitName)
+    +  execute($zxc)
+    +  getChildren()
+    +  getBeforeHookHandler()
+    +  getAfterHookHandler()
+}
+
+@enduml

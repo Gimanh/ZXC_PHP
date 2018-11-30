@@ -1,0 +1,42 @@
+@startuml
+interface SQL{
+    + getSQLString()
+    + exec(DB $instance)
+    + join($mode)
+}
+
+class Select implements SQL
+
+class Delete implements SQL
+
+class Update implements SQL
+
+class Insert implements SQL
+
+interface SQLFields{
+    +getString();
+}
+
+interface SimpleFields extends SQLFields{
+
+}
+
+interface ConditionsFields extends SQLFields{
+    +getValues()
+}
+
+abstract SchemeStructure{
+    +select($schemeStructure)
+    +delete($schemeStructure)
+    +update($schemeStructure)
+    +insert($schemeStructure)
+}
+
+/'interface StructureData{
+    +create()
+    +read()
+    +update()
+    +delete()
+}'/
+
+@enduml
