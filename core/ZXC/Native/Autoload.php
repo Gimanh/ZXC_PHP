@@ -2,18 +2,20 @@
 
 namespace ZXC\Native;
 
+require_once ZXC_ROOT . DIRECTORY_SEPARATOR . 'ZXC' . DIRECTORY_SEPARATOR . 'Functions' . DIRECTORY_SEPARATOR
+    . 'index.php';
 require_once ZXC_ROOT . DIRECTORY_SEPARATOR . 'ZXC' . DIRECTORY_SEPARATOR . 'Patterns' . DIRECTORY_SEPARATOR
     . 'Singleton.php';
 require_once ZXC_ROOT . DIRECTORY_SEPARATOR . 'ZXC' . DIRECTORY_SEPARATOR
     . 'Native' . DIRECTORY_SEPARATOR . 'Helper.php';
 require_once ZXC_ROOT . DIRECTORY_SEPARATOR . 'ZXC' . DIRECTORY_SEPARATOR
-    . 'Interfaces' . DIRECTORY_SEPARATOR . 'ZXCCore.php';
+    . 'Interfaces' . DIRECTORY_SEPARATOR . 'ZXC.php';
 
 
-use ZXC\Interfaces\ZXCCore;
+
 use ZXC\Patterns\Singleton;
 
-class Autoload implements ZXCCore
+class Autoload
 {
     use Singleton;
     private static $autoloadDirectories = ['' => true];
@@ -114,9 +116,6 @@ class Autoload implements ZXCCore
         $fileClass = str_replace('\\', DIRECTORY_SEPARATOR, $className);
         if (strpos($className, 'ZXC') === 0) {
             $file = ZXC_ROOT . DIRECTORY_SEPARATOR . $fileClass . '.php';
-//            if (!is_file($file)) {
-//                return false;
-//            }
         } else {
             if (!empty(self::$autoloadDirectories)) {
                 foreach (self::$autoloadDirectories as $dir => $val) {
@@ -136,11 +135,9 @@ class Autoload implements ZXCCore
                 }
             }
         }
-        if ($file) {
+        if ($file && file_exists($file)) {
             require_once $file;
         }
-
-//        return false;
     }
 }
 

@@ -8,7 +8,7 @@ class Response
 {
     use Singleton;
 
-    private static $answerData = ['response' => ['body' => '', 'handler' => '', 'status' => 200]];
+    private static $answerData = ['zxc' => ['body' => '', 'handler' => '', 'status' => 200]];
     private static $headers = [];
     private static $status = 200;
 
@@ -17,11 +17,11 @@ class Response
         self::$answerData = $responseData;
     }
 
-    public static function sendResponse($responseDataBody = false, $responseDataHandler = false): string
+    public static function sendResponse($responseDataBody = false, $responseDataHandler = false)
     {
-        self::$answerData['response']['body'] = !$responseDataBody ? '' : $responseDataBody;
-        self::$answerData['response']['handler'] = !$responseDataHandler ? '' : $responseDataHandler;
-        self::$answerData['response']['status'] = self::$status;
+        self::$answerData['zxc']['body'] = $responseDataBody;
+        self::$answerData['zxc']['handler'] = $responseDataHandler;
+        self::$answerData['zxc']['status'] = self::$status;
         self::sendHeaders();
         return json_encode(self::$answerData);
     }
@@ -30,8 +30,12 @@ class Response
     {
         if (!headers_sent()) {
             foreach (self::$headers as $name => $values) {
-                foreach ($values as $value) {
-                    header(sprintf('%s: %s', $name, $value), false);
+                if (is_array($values)) {
+                    foreach ($values as $value) {
+                        header(sprintf('%s: %s', trim($name), trim($value)));
+                    }
+                } else {
+                    header(sprintf('%s: %s', trim($name), trim($values)));
                 }
             }
 
@@ -56,7 +60,11 @@ class Response
             if (!array_key_exists($header, self::$headers)) {
                 self::$headers[$header] = $value;
             } else {
-                self::$headers[$header] = array_merge(self::$headers[$header], $value);
+                if (is_array(self::$headers[$header])) {
+                    self::$headers[$header] = array_merge(self::$headers[$header], $value);
+                } else {
+                    self::$headers[$header] = $value;
+                }
             }
         }
         return true;

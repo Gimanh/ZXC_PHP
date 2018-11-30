@@ -4,11 +4,13 @@ use PHPUnit\Framework\TestCase;
 
 class RequestTest extends TestCase
 {
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testRequestInitializeException()
     {
         $server = [];
         $request = \ZXC\Native\HTTP\Request::getInstance();
-        $this->expectException(\InvalidArgumentException::class);
         $request->initialize($server);
     }
 

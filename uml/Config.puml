@@ -1,9 +1,0 @@
-@startuml
-
-class Config{
-    {static} array $config = []
-    {static} + initialize()
-    {static} + get()
-    {static} + add()
-}
-@enduml

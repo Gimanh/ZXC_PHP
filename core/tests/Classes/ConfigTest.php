@@ -4,49 +4,69 @@ use PHPUnit\Framework\TestCase;
 
 class ConfigTest extends TestCase
 {
-    public function testInitialize()
+    private static $originConfig = [];
+
+    public static function setUpBeforeClass()
     {
-        $configInstance = \ZXC\Classes\Config::getInstance();
-        $this->expectException(\InvalidArgumentException::class);
-        $configInstance::initialize([]);
+        self::$originConfig = ['ZXC' => \ZXC\Native\Config::get('ZXC')];
     }
 
+    public static function tearDownAfterClass()
+    {
+        \ZXC\Native\Config::initialize(self::$originConfig);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testInitialize()
+    {
+        \ZXC\Native\Config::initialize([]);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testGet()
     {
         $config = ['ZXC' => ['Logger' => ['level' => 'debug'], 'Test' => 'test']];
-        $configInstance = \ZXC\Classes\Config::getInstance();
-        $configInstance::initialize($config);
 
-        $this->assertFalse($configInstance::get('No/Parameters/path'));
+        \ZXC\Native\Config::initialize($config);
 
-        $this->assertSame($configInstance::get('ZXC/Logger'), ['level' => 'debug']);
+        $this->assertFalse(\ZXC\Native\Config::get('No/Parameters/path'));
 
-        $this->assertFalse($configInstance::get('zxc/logger'));
+        $this->assertSame(\ZXC\Native\Config::get('ZXC/Logger'), ['level' => 'debug']);
 
-        $this->assertSame($configInstance::get('zxc/loGgeR/', false), ['level' => 'debug']);
+        $this->assertFalse(\ZXC\Native\Config::get('zxc/logger'));
 
-        $this->assertSame($configInstance::get('zxc/logger', false), ['level' => 'debug']);
+        $this->assertFalse(\ZXC\Native\Config::get('ZXC/Test/undefined'));
 
-        $this->assertSame($configInstance::get('ZXC/Test'), 'test');
+        $this->assertSame(\ZXC\Native\Config::get('zxc/loGgeR/', false), ['level' => 'debug']);
 
-        $this->expectException(\InvalidArgumentException::class);
-        $configInstance::get([]);
+        $this->assertSame(\ZXC\Native\Config::get('zxc/logger', false), ['level' => 'debug']);
+
+        $this->assertSame(\ZXC\Native\Config::get('ZXC/Test'), 'test');
+
+        \ZXC\Native\Config::get([]);
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testAdd()
     {
         $config = ['ZXC' => ['Logger' => ['level' => 'debug'], 'Test' => 'test']];
-        $configInstance = \ZXC\Classes\Config::getInstance();
-        $configInstance::initialize($config);
+        \ZXC\Native\Config::initialize($config);
 
-        $this->assertSame($configInstance::get('ZXC'), ['Logger' => ['level' => 'debug'], 'Test' => 'test']);
-        $this->assertTrue($configInstance::add(['GNL' => ['qwerty' => 1234567]]));
+        $this->assertSame(\ZXC\Native\Config::get('ZXC'), ['Logger' => ['level' => 'debug'], 'Test' => 'test']);
+        $this->assertTrue(\ZXC\Native\Config::add(['GNL' => ['qwerty' => 1234567]]));
 
-        $this->assertSame($configInstance::get('ZXC'), ['Logger' => ['level' => 'debug'], 'Test' => 'test']);
-        $this->assertSame($configInstance::get('GNL'), ['qwerty' => 1234567]);
+        $this->assertSame(\ZXC\Native\Config::get('ZXC'), ['Logger' => ['level' => 'debug'], 'Test' => 'test']);
+        $this->assertSame(\ZXC\Native\Config::get('GNL'), ['qwerty' => 1234567]);
 
-        $this->expectException(\InvalidArgumentException::class);
-        $configInstance::add([]);
+        $this->assertTrue(\ZXC\Native\Config::add(['ZXC' => ['qwerty' => 'testReplace']]));
+        $this->assertSame(\ZXC\Native\Config::get('ZXC/qwerty'), 'testReplace');
 
+        \ZXC\Native\Config::add([]);
     }
 }

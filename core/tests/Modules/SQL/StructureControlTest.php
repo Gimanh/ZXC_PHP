@@ -24,12 +24,14 @@ class StructureControlTest extends TestCase
         ];
         StructureControl::registerStructure($structure);
         $structureByName = StructureControl::getStructureByName($structure['name']);
-        $this->assertSame($structure, $structureByName);
-
-//        $structureByName = StructureControl::getStructureByName($structure['name']);
-//        $result = $structureByName->setValues()->exec('select');
+        $this->assertSame($structure['name'], $structureByName['name']);
+        $this->assertSame($structure['table'], $structureByName['table']);
+        $this->assertSame($structure['fields'], $structureByName['fields']);
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testExceptionRegisterStructureWithoutName()
     {
         $structure = [
@@ -46,7 +48,6 @@ class StructureControlTest extends TestCase
                 ]
             ]
         ];
-        $this->expectException(\InvalidArgumentException::class);
         StructureControl::registerStructure($structure);
     }
 }

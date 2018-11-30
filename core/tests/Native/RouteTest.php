@@ -85,65 +85,72 @@ class RouteTest extends TestCase
      */
     public $router;
 
-    public function __construct(string $name = null, array $data = [], string $dataName = '')
+    public function __construct($name = null, array $data = [], $dataName = '')
     {
         $routerConfig = [
-            [
-                'route' => 'GET|/',
-                'callback' => function ($zxc, $parameters) {
+            'routes' => [
+                [
+                    'route' => 'GET|/',
+                    'callback' => function ($zxc, $parameters) {
 
-                }
-            ],
-            [
-                'route' => 'GET|/|FakeClassForRouteTest:getIndex',
-            ],
-            [
-                'route' => 'POST|/:userParameters/:secondParameters',
-                'callback' => function ($zxc) {
-                },
-                'before' => function ($zxc, $parameters) {
-                },
-                'after' => function ($zxc, $parameters) {
-                }
-            ],
-            [
-                'route' => 'POST|/:user|FakeClassForRouteTest:getUser',
-                'call' => function ($zxc) {
-                    $stop = $zxc;
-                },
-                'before' => 'FakeClassForRouteTest:beforeGetUser',
-                'after' => function ($zxc, $parameters) {
+                    }
+                ],
+                [
+                    'route' => 'GET|/|FakeClassForRouteTest:getIndex',
+                ],
+                [
+                    'route' => 'POST|/:userParameters/:secondParameters',
+                    'callback' => function ($zxc) {
+                    },
+                    'before' => function ($zxc, $parameters) {
+                    },
+                    'after' => function ($zxc, $parameters) {
+                    }
+                ],
+                [
+                    'route' => 'POST|/:user|FakeClassForRouteTest:getUser',
+                    'call' => function ($zxc) {
+                        $stop = $zxc;
+                    },
+                    'before' => 'FakeClassForRouteTest:beforeGetUser',
+                    'after' => function ($zxc, $parameters) {
 
-                },
-                'hooksResultTransfer' => true,
-                'children' => [
-                    'route' => 'GET|profile|FakeClassForRouteTest:getUserProfile',
-                    'before' => 'FakeClassForRouteTest:beforeGetUserProfile',
-                    'after' => 'FakeClassForRouteTestSecond:afterGetUserProfile',
+                    },
+                    'hooksResultTransfer' => true,
                     'children' => [
-                        'route' => 'POST|profile2|FakeClassForRouteTestSingleton:getUserProfile2',
-                        'before' => 'FakeClassForRouteTestSingleton:beforeGetUserProfile2',
-                        'after' => 'FakeClassForRouteTestSingleton:afterGetUserProfile2',
+                        'route' => 'GET|profile|FakeClassForRouteTest:getUserProfile',
+                        'before' => 'FakeClassForRouteTest:beforeGetUserProfile',
+                        'after' => 'FakeClassForRouteTestSecond:afterGetUserProfile',
+                        'children' => [
+                            'route' => 'POST|profile2|FakeClassForRouteTestSingleton:getUserProfile2',
+                            'before' => 'FakeClassForRouteTestSingleton:beforeGetUserProfile2',
+                            'after' => 'FakeClassForRouteTestSingleton:afterGetUserProfile2',
+                        ]
                     ]
                 ]
-            ]
+            ],
+
         ];
         $this->router = \ZXC\Native\Router::getInstance();
         $this->router->initialize($routerConfig);
         parent::__construct($name, $data, $dataName);
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testInitializeException()
     {
         $this->assertSame($this->router, \ZXC\Native\Router::getInstance());
 
-        $this->expectException(\InvalidArgumentException::class);
         $this->router->initialize([]);
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testInitializeRouteException()
     {
-        $this->expectException(\InvalidArgumentException::class);
         new \ZXC\Native\Route([]);
     }
 
@@ -155,7 +162,7 @@ class RouteTest extends TestCase
         $routesCount = count($this->router->getRoutes());
         $this->assertTrue($routesCount >= 2);
 
-        $routeTypes = count($this->router->getRouteTypes());
+        $routeTypes = count($this->router->getAllowedMethods());
         $this->assertTrue($routeTypes >= 2);
 
         $this->assertArrayHasKey('/', $this->router->getRoutes()['GET']);
@@ -192,7 +199,7 @@ class RouteTest extends TestCase
         $userProfileRoute = $this->router->getRoutes()['GET']['/:user/profile'];
         $this->assertSame($userProfileRoute->getRequestMethod(), 'GET');
         $this->assertSame($userProfileRoute->getRoutePath(), '/:user/profile');
-        $this->assertSame($userProfileRoute->getRegex(), '@^/(?<user>[a-zA-Z0-9\_\-]+)/profile$@D');
+        $this->assertSame($userProfileRoute->getRegex(), '@^/(?<user>[a-zA-Z0-9\_\-\@\.]+)/profile$@D');
 
         $this->assertSame($userProfileRoute->getClass(), 'FakeClassForRouteTest');
         $this->assertSame($userProfileRoute->getClassMethod(), 'getUserProfile');
@@ -222,7 +229,7 @@ class RouteTest extends TestCase
 
         $this->assertSame($userRoute->getRequestMethod(), 'POST');
         $this->assertSame($userRoute->getRoutePath(), '/:user');
-        $this->assertSame($userRoute->getRegex(), '@^/(?<user>[a-zA-Z0-9\_\-]+)$@D');
+        $this->assertSame($userRoute->getRegex(), '@^/(?<user>[a-zA-Z0-9\_\-\@\.]+)$@D');
         $this->assertSame($userRoute->getClass(), 'FakeClassForRouteTest');
         $this->assertSame($userRoute->getClassMethod(), 'getUser');
         $this->assertSame($userRoute->getCallback(), null);
@@ -255,7 +262,7 @@ class RouteTest extends TestCase
 
         $this->assertSame($userProfileRoute2->getRequestMethod(), 'POST');
         $this->assertSame($userProfileRoute2->getRoutePath(), '/:user/profile/profile2');
-        $this->assertSame($userProfileRoute2->getRegex(), '@^/(?<user>[a-zA-Z0-9\_\-]+)/profile/profile2$@D');
+        $this->assertSame($userProfileRoute2->getRegex(), '@^/(?<user>[a-zA-Z0-9\_\-\@\.]+)/profile/profile2$@D');
         $this->assertSame($userProfileRoute2->getClass(), 'FakeClassForRouteTestSingleton');
         $this->assertSame($userProfileRoute2->getClassMethod(), 'getUserProfile2');
         $this->assertSame($userProfileRoute2->getCallback(), null);
@@ -270,16 +277,16 @@ class RouteTest extends TestCase
 
     public function testDisableRouterType()
     {
-        $this->assertTrue($this->router->getRouteTypes()['GET']);
+        $this->assertTrue($this->router->getAllowedMethods()['GET']);
         $this->router->disableRouterType('GET');
-        $this->assertFalse($this->router->getRouteTypes()['GET']);
+        $this->assertFalse($this->router->getAllowedMethods()['GET']);
     }
 
     public function testEnableRouterType()
     {
-        $this->assertFalse($this->router->getRouteTypes()['GET']);
+        $this->assertFalse($this->router->getAllowedMethods()['GET']);
         $this->router->enableRouterType('GET');
-        $this->assertTrue($this->router->getRouteTypes()['GET']);
+        $this->assertTrue($this->router->getAllowedMethods()['GET']);
     }
 
     public function testGetRouteParamsFromURI()
@@ -328,6 +335,9 @@ class RouteTest extends TestCase
         $this->assertSame($userProfileProfile2RouteInstance->getRouteURIParams(), ['user' => 'userTest']);
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testDifficultBaseRoute()
     {
         $routes = $this->router->getRoutes();
@@ -355,21 +365,24 @@ class RouteTest extends TestCase
             ['userParameters' => 'userTest', 'secondParameters' => 'secondParameters']);
 
 
-        $this->expectException(\InvalidArgumentException::class);
         $this->router->getRouteWithParamsFromURI('/example/userTest/secondParameters', 'POST');
 //        $routeParams = $this->router->getRouteWithParamsFromURI('/example/userTest/secondParameters', 'POST');
 //        $this->assertFalse($routeParams);
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testExceptionInInitialize()
     {
-        $this->expectException(\InvalidArgumentException::class);
         $this->router->initialize([]);
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testConstructRouteException()
     {
-        $this->expectException(\InvalidArgumentException::class);
         new Route([]);
     }
 
@@ -387,7 +400,7 @@ class RouteTest extends TestCase
         $route = new Route($params);
         $route->parseRouteParams($params);
         $this->assertSame($route->getRegex(),
-            '@^/(?<userParameters>[a-zA-Z0-9\_\-]+)/(?<secondParameters>[a-zA-Z0-9\_\-]+)$@D');
+            '@^/(?<userParameters>[a-zA-Z0-9\_\-\@\.]+)/(?<secondParameters>[a-zA-Z0-9\_\-\@\.]+)$@D');
     }
 
     public function testPrepareChildrenRouteParams()

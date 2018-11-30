@@ -2,31 +2,35 @@
 
 namespace ZXC\Native;
 
-class DB
+use ZXC\Interfaces\Module;
+
+class DB implements \ZXC\Interfaces\Native\DB, Module
 {
+    use \ZXC\Traits\Module;
     /**
      * @var \PDO
      */
-    private $pdo;
-    private $dsn;
-    private $dbName;
-    private $user;
-    private $password;
-    private $charset = 'utf8';
-    private $dbType;
-    private $dbHost;
-    private $port;
-    private $errorCode;
-    private $errorMessage;
-    private $fetchStyle = \PDO::FETCH_OBJ;
+    protected $pdo = null;
+    protected $dsn = null;
+    protected $dbName = null;
+    protected $user = null;
+    protected $password = null;
+    protected $charset = 'utf8';
+    protected $dbType = null;
+    protected $dbHost = null;
+    protected $port = null;
+    protected $errorCode = null;
+    protected $errorMessage = null;
+    protected $fetchStyle = \PDO::FETCH_ASSOC;
 
-    public function initialize(array $config = [])
+    public function initialize(array $config = null)
     {
         if (!$this->checkConfig($config)) {
             throw new \InvalidArgumentException('Invalid config for DB connection');
         }
         $this->setVarsFromConfig($config);
         $this->createPDOInstance();
+        return true;
     }
 
     public function createPDOInstance()
@@ -36,6 +40,7 @@ class DB
         } catch (\PDOException $e) {
             $this->errorCode = $e->getCode();
             $this->errorMessage = $e->getMessage();
+            throw new \InvalidArgumentException('PDO create error check error code');
         }
     }
 
@@ -64,13 +69,17 @@ class DB
             && isset($config['password']) && isset($config['user']);
     }
 
-    public function exec(string $query, array $params = [])
+    public function exec($query, array $params = [])
     {
         try {
             $resultArr = [];
             $this->begin();
             $state = $this->pdo->prepare($query);
             $result = $state->execute($params);
+            if (!$result) {
+                $this->rollBack();
+                return false;
+            }
             $this->commit();
             if ($result) {
                 $resultArr = $state->fetchAll($this->fetchStyle);
@@ -104,10 +113,18 @@ class DB
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getDsn()
     {
         return $this->dsn;
+    }
+
+    /**
+     * @return null
+     */
+    public function getDbType()
+    {
+        return $this->dbType;
     }
 }
