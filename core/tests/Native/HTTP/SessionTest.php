@@ -29,6 +29,8 @@ class SessionTest extends TestCase
 
         $this->assertSame($sessionInstance->set('testKey', 'testValue'), 'testValue');
 
+        $this->assertSame(session_id(), $sessionInstance->getSessionId());
+
         $this->assertSame($_SESSION, ['zxc_' => ['testKey' => 'testValue']]);
 
         $sessionInstance->clear();

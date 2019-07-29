@@ -2,22 +2,36 @@
 
 namespace ZXC\Classes;
 
+use DateTime;
+use Exception;
 use ZXC\Native\Helper;
+use InvalidArgumentException;
 
+/**
+ * Class Token
+ * @package ZXC\Classes
+ * @link https://tools.ietf.org/html/rfc7519#section-4.1
+ * @link https://ru.wikipedia.org/wiki/JSON_Web_Token
+ */
 class Token
 {
+    protected static $reportMessages = [];
+
     public static $supported = [
-        'HS256' => ['hash_hmac', 'SHA256'],
-        'HS384' => ['hash_hmac', 'SHA384'],
-        'HS512' => ['hash_hmac', 'SHA512']
+        'HS256' => ['func' => 'hash_hmac', 'alg' => 'SHA256'],
+        'HS384' => ['func' => 'hash_hmac', 'alg' => 'SHA384'],
+        'HS512' => ['func' => 'hash_hmac', 'alg' => 'SHA512'],
+        'RS256' => ['func' => 'openssl', 'alg' => 'SHA256'],
+        'RS384' => ['func' => 'openssl', 'alg' => 'SHA384'],
+        'RS512' => ['func' => 'openssl', 'alg' => 'SHA512'],
     ];
 
     /**
-     * @param array $payload
+     * @param mixed $payload
      * @param string $secretKey
      * @param string $alg
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public static function encode($payload, $secretKey, $alg = 'HS256')
     {
@@ -40,25 +54,28 @@ class Token
      * @param $jwt
      * @param $secretKey
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      */
     public static function decode($jwt, $secretKey)
     {
         $timestamp = time();
         $jwtSections = explode('.', $jwt);
+        if (count($jwtSections) !== 3) {
+            return false;
+        }
         $header = self::jsonDecode(self::base64UrlDecode($jwtSections[0]));
         $payload = self::jsonDecode(self::base64UrlDecode($jwtSections[1]));
         $sign = self::base64UrlDecode($jwtSections[2]);
         if ($header === null || $payload === null || $sign === null) {
-            throw new \InvalidArgumentException('Invalid JWT');
+            throw new InvalidArgumentException('Invalid JWT');
         }
         if (empty($header['alg']) || empty(self::$supported[$header['alg']])) {
-            throw new \InvalidArgumentException('Invalid alg or alg not supported');
+            throw new InvalidArgumentException('Invalid alg or alg not supported');
         }
         $body = $jwtSections[0] . '.' . $jwtSections[1];
         $verify = self::verify($body, $sign, $secretKey, $header['alg'], $payload, $timestamp);
-        if (!$verify['status']) {
-            throw new \InvalidArgumentException($verify['error']);
+        if (!$verify) {
+            return false;
         }
         return $payload;
     }
@@ -68,15 +85,29 @@ class Token
      * @param $secretKey
      * @param string $alg
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public static function sign($msg, $secretKey, $alg = 'HS256')
     {
-        if (!self::$supported[$alg]) {
-            throw new \InvalidArgumentException('Algorithm' . $alg . ' not supported');
+        if (!isset(self::$supported[$alg])) {
+            throw new InvalidArgumentException('Algorithm' . $alg . ' not supported');
         }
-        $alg = self::$supported[$alg][1];
-        return hash_hmac($alg, $msg, $secretKey, true);
+
+        $hashInfo = self::$supported[$alg];
+        if ($hashInfo['func'] === 'hash_hmac') {
+            return hash_hmac($hashInfo['alg'], $msg, $secretKey, true);
+        }
+
+        if ($hashInfo['func'] === 'openssl') {
+            $signature = '';
+            $success = openssl_sign($msg, $signature, $secretKey, $hashInfo['alg']);
+            if (!$success) {
+                return '';
+            } else {
+                return $signature;
+            }
+        }
+        return '';
     }
 
     public static function base64UrlEncode($string)
@@ -106,33 +137,71 @@ class Token
     /**
      * @param $jwtMsg
      * @param $sign
-     * @param $secretKey
+     * @param $secretOrPublicKey
      * @param $alg
      * @param $payload
      * @param $timestamp
-     * @return array ['status' => $signCorrect, 'error' => $errorInfo]
-     * @throws \Exception \InvalidArgumentException
+     * @return bool
+     * @throws Exception \InvalidArgumentException
      */
-    public static function verify($jwtMsg, $sign, $secretKey, $alg, $payload, $timestamp)
+    public static function verify($jwtMsg, $sign, $secretOrPublicKey, $alg, $payload, $timestamp)
     {
-        $errorInfo = '';
-        $computedSign = self::sign($jwtMsg, $secretKey, $alg);
-        $signCorrect = Helper::hashEquals($sign, $computedSign);
+        self::$reportMessages = [];
+        $hashInfo = self::$supported[$alg];
+        if ($hashInfo['func'] === 'openssl') {
+            $success = openssl_verify($jwtMsg, $sign, $secretOrPublicKey, $hashInfo['alg']);
+            if ($success === 1) {
+                return true;
+            } elseif ($success === 0) {
+                self::addReportMessage('OpenSSL verify error');
+                return false;
+            } else {
+                self::addReportMessage('OpenSSL error ' . openssl_error_string());
+                return false;
+            }
+        } else {
+            $computedSign = self::sign($jwtMsg, $secretOrPublicKey, $alg);
+            $signCorrect = Helper::hashEquals($sign, $computedSign);
+        }
         if (!$signCorrect) {
-            return ['status' => $signCorrect, 'error' => 'Failed hash_equals'];
+            self::addReportMessage('Failed hash_equals');
+            return false;
         }
-        //Identifies the time on which the JWT will start to be accepted for processing.
+
         if (isset($payload['nbf']) && $payload['nbf'] > $timestamp) {
-            $errorInfo = 'Invalid JWT nbf';
+            self::addReportMessage('Invalid JWT you can use token after ' . date(DateTime::ISO8601, $payload['nbf']));
+            return false;
         }
-        //Identifies the time at which the JWT was issued.
+
         if (isset($payload['iat']) && $payload['iat'] > $timestamp) {
-            $errorInfo = 'Invalid JWT iat';
+            self::addReportMessage('Invalid JWT "iat" issued at');
+            return false;
         }
-        //Identifies the expiration time on or after which the JWT must not be accepted for processing. The value should be in NumericDate[10][11] format.
+
         if (isset($payload['exp']) && $timestamp >= $payload['exp']) {
-            $errorInfo = 'Invalid JWT iat';
+            self::addReportMessage('Invalid JWT, token is expired');
+            return false;
         }
-        return ['status' => $signCorrect, 'error' => $errorInfo];
+        return true;
+    }
+
+    public static function addReportMessage($message)
+    {
+        self::$reportMessages[] = $message;
+    }
+
+    public static function getReportMessage()
+    {
+        return implode(' | ', self::$reportMessages);
+    }
+
+    public static function fetchPayload($jwt)
+    {
+        $jwtSections = explode('.', $jwt);
+        if (count($jwtSections) !== 3) {
+            return false;
+        }
+        $payload = self::jsonDecode(self::base64UrlDecode($jwtSections[1]));
+        return $payload;
     }
 }

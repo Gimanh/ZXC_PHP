@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: nikolaygiman
- * Date: 22/10/2018
- * Time: 22:38
- */
 
 namespace ZXC\Native;
-
 
 class I18N
 {

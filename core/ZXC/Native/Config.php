@@ -43,7 +43,7 @@ class Config
             if (is_array($configParameters) && array_key_exists($item, $configParameters)) {
                 $configParameters = $configParameters[$item];
             } else {
-                return false;
+                return null;
             }
         }
         return $configParameters;

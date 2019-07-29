@@ -2,19 +2,24 @@
 
 namespace ZXC\Modules\Logger;
 
+use ZXC\ZXC;
 use DateTime;
-use Psr\Log\AbstractLogger;
-use Psr\Log\LoggerInterface;
-use ZXC\Interfaces\Module;
+use Exception;
 use ZXC\Native\Helper;
+use ZXC\Traits\Module;
+use Psr\Log\AbstractLogger;
+use ZXC\Interfaces\IModule;
+use Psr\Log\LoggerInterface;
 
-class Logger extends AbstractLogger implements LoggerInterface, Module
+class Logger extends AbstractLogger implements LoggerInterface, IModule
 {
-    use \ZXC\Traits\Module;
+    use Module;
+
+    protected $version = '0.0.1';
     private $root = null;
     private $dateFormat = DateTime::RFC2822;
     private $logFileName = null;
-    private $template = "{date} {level} {message} {context}";
+    private $template = "{date} | {level} | {ip} | {message} | {context}";
     private $level = null;
     private $logsFolder = null;
     private $fullLogFilePath = null;
@@ -47,6 +52,9 @@ class Logger extends AbstractLogger implements LoggerInterface, Module
             if (!file_exists($this->fullLogFilePath)) {
                 touch($this->fullLogFilePath);
             }
+            if (isset($config['template'])) {
+                $this->template = $config['template'];
+            }
             return true;
         } else {
             return false;
@@ -55,13 +63,16 @@ class Logger extends AbstractLogger implements LoggerInterface, Module
 
     /**
      * @inheritdoc
+     * @throws Exception
      */
     public function log($level, $message, array $context = [])
     {
         $this->updateFullLogFilePath();
+        $ip = ZXC::getIp();
         file_put_contents($this->fullLogFilePath, trim(strtr($this->template, [
                 '{date}' => $this->getDate(),
                 '{level}' => $level,
+                '{ip}' => $ip,
                 '{message}' => $message,
                 '{context}' => $this->contextStringify($context),
             ])) . PHP_EOL, FILE_APPEND);
@@ -87,6 +98,11 @@ class Logger extends AbstractLogger implements LoggerInterface, Module
         $this->fullLogFilePath = Helper::fixDirectorySlashes($this->fullLogFilePath);
     }
 
+    /**
+     * @method getDate
+     * @return string
+     * @throws Exception
+     */
     public function getDate()
     {
         return (new DateTime())->format($this->dateFormat);
@@ -152,5 +168,17 @@ class Logger extends AbstractLogger implements LoggerInterface, Module
     public function setLogFileName($logFileName)
     {
         $this->logFileName = $logFileName;
+    }
+
+    /**
+     * @param $logFileName
+     * @method withLogFileName
+     * @return Logger
+     */
+    public function withLogFileName($logFileName)
+    {
+        $new = clone $this;
+        $new->logFileName = $logFileName;
+        return $new;
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+use ZXC\Native\Helper;
 
 function callbackHelper($a, $b, $c)
 {
@@ -20,6 +21,35 @@ class Qwe
     }
 }
 
+trait ArgTrait
+{
+
+}
+
+class ArgT
+{
+    use ArgTrait;
+    private $arg = null;
+
+    public function __construct($arg)
+    {
+        $this->arg = $arg;
+    }
+
+    /**
+     * @return null
+     */
+    public function getArg()
+    {
+        return $this->arg;
+    }
+}
+
+class Abc
+{
+
+}
+
 class HelperTest extends TestCase
 {
     public function testIsAssoc()
@@ -27,7 +57,7 @@ class HelperTest extends TestCase
         $array = [1, 2, 3];
         $assocArray = ['field1' => 1, 'field2' => 2];
         $assocArrayWithIndex = ['field' => 1, 2];
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
 
         $this->assertFalse($helper::isAssoc($array));
         $this->assertTrue($helper::isAssoc($assocArray));
@@ -44,7 +74,7 @@ class HelperTest extends TestCase
         $invalidLogin2 = 'qewrdfsrdgfhdgftrgfdeq';
         $invalidLogin3 = '12312313';
 
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
         $this->assertTrue($helper::isValidLogin($validLogin1));
         $this->assertTrue($helper::isValidLogin($validLogin2));
         $this->assertTrue($helper::isValidLogin($validLogin3));
@@ -64,7 +94,7 @@ class HelperTest extends TestCase
         $invalidPassword4 = 'ASDFASDF12345';
         $invalidPassword5 = 'sdfaasdfasdf12345';
 
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
         $this->assertTrue($helper::isValidStrongPassword($validPassword1));
         $this->assertTrue($helper::isValidStrongPassword($validPassword2));
 
@@ -80,7 +110,7 @@ class HelperTest extends TestCase
         $invalidEmail1 = 'asdfasdfasdfas@fdsafsdfasd';
         $validEmailInvalidMX = 'asdfasdfasdfas@fdsafsdfasd.r';
         $validEmail1 = 'headtest@gmail.com';
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
 
         $this->assertFalse($helper::isEmail($invalidEmail1));
         $this->assertFalse($helper::isEmail($invalidEmail1, false));
@@ -94,7 +124,7 @@ class HelperTest extends TestCase
 
     public function testGetCleanEmail()
     {
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
         $validEmail1 = 'headtes()t@gmail.com';
         $this->assertFalse($helper::isEmail($validEmail1));
         $this->assertSame($helper::getCleanEmail($validEmail1), 'headtest@gmail.com');
@@ -103,7 +133,7 @@ class HelperTest extends TestCase
     public function testGetPasswordHash()
     {
         $password = '12jfHknfjdIldsa*j%';
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
 
         $passwordHash1 = $helper::getPasswordHash($password);
         $passwordHash2 = $helper::getPasswordHash($password);
@@ -119,7 +149,7 @@ class HelperTest extends TestCase
         $hash2 = '$2y$10$7eemW28ULBAVQseqw.GOju5GqWrOhTMkQhyEGJwK8ewe.lEeV8q6G';
         $hashInvalid = '$2y$10$7eemW12ULBAVQseqw.GOju5GqWrOhTMkQhyEGJwK8ewe.lEeV8q6G';
 
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
         $this->assertTrue($helper::passwordVerify($password, $hash1));
         $this->assertTrue($helper::passwordVerify($password, $hash2));
         $this->assertFalse($helper::passwordVerify($password, $hashInvalid));
@@ -129,14 +159,14 @@ class HelperTest extends TestCase
     {
         $validIP = '192.168.1.0';
         $invalidIP = '1.1.2.3.4';
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
         $this->assertTrue($helper::isIP($validIP));
         $this->assertFalse($helper::isIP($invalidIP));
     }
 
     public function testEqual()
     {
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
         $this->assertTrue($helper::equal('1234', '1234'));
         $this->assertFalse($helper::equal('1234', 1234));
         $this->assertTrue($helper::equal(intval('1234'), 1234));
@@ -145,19 +175,19 @@ class HelperTest extends TestCase
 
     public function testCreateHash()
     {
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
         $this->assertSame(strlen($helper::createHash()), 32);
     }
 
     public function testGetResponse()
     {
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
         $this->assertSame($helper::getResponse(500, ['qwerty']), ['status' => 500, 'data' => ['qwerty']]);
     }
 
     public function testGenerateRandomText()
     {
-        $helper = \ZXC\Native\Helper::getInstance();
+        $helper = Helper::getInstance();
         $resultText = $helper::generateRandomText(3, 8, true, ['a']);
 
         $this->assertTrue(strlen($resultText) >= 3);
@@ -305,20 +335,20 @@ class HelperTest extends TestCase
             'field4' => null,
         ];
 
-        $this->assertTrue(\ZXC\Native\Helper::issetKeys($arr, [
+        $this->assertTrue(Helper::issetKeys($arr, [
             'field1'
         ]));
-        $this->assertTrue(\ZXC\Native\Helper::issetKeys($arr, [
+        $this->assertTrue(Helper::issetKeys($arr, [
             'field1',
             'field2',
             'field3'
         ]));
-        $this->assertTrue(\ZXC\Native\Helper::issetKeys($arr, [
+        $this->assertTrue(Helper::issetKeys($arr, [
             'field1',
             'field2',
             'field4'
         ]));
-        $this->assertFalse(\ZXC\Native\Helper::issetKeys($arr, [
+        $this->assertFalse(Helper::issetKeys($arr, [
             'field1',
             'field2',
             'field4',
@@ -334,20 +364,20 @@ class HelperTest extends TestCase
             'field3' => 'v3',
             'field4' => null,
         ];
-        $r1 = \ZXC\Native\Helper::getConvertedArrayForStructureByKeys($arr, ['field1']);
+        $r1 = Helper::getConvertedArrayForStructureByKeys($arr, ['field1']);
         $this->assertSame(['field1' => ['value' => 'v1']], $r1);
 
-        $r2 = \ZXC\Native\Helper::getConvertedArrayForStructureByKeys($arr, ['field1', 'field5']);
+        $r2 = Helper::getConvertedArrayForStructureByKeys($arr, ['field1', 'field5']);
         $this->assertFalse($r2);
 
-        $r3 = \ZXC\Native\Helper::getConvertedArrayForStructureByKeys($arr, ['field1', 'field2', 'field3']);
+        $r3 = Helper::getConvertedArrayForStructureByKeys($arr, ['field1', 'field2', 'field3']);
         $this->assertSame([
             'field1' => ['value' => 'v1'],
             'field2' => ['value' => 'v2'],
             'field3' => ['value' => 'v3']
         ], $r3);
 
-        $r3 = \ZXC\Native\Helper::getConvertedArrayForStructureByKeys($arr, ['field1', 'field2', 'field3', 'field4']);
+        $r3 = Helper::getConvertedArrayForStructureByKeys($arr, ['field1', 'field2', 'field3', 'field4']);
         $this->assertSame([
             'field1' => ['value' => 'v1'],
             'field2' => ['value' => 'v2'],
@@ -359,7 +389,7 @@ class HelperTest extends TestCase
     public function testFixSlashes()
     {
         $path = 'a' . DIRECTORY_SEPARATOR . 'b' . DIRECTORY_SEPARATOR . 'qwerty.js';
-        $result = \ZXC\Native\Helper::fixDirectorySlashes('a/b\qwerty.js');
+        $result = Helper::fixDirectorySlashes('a/b\qwerty.js');
         $this->assertSame($path, $result);
     }
 
@@ -372,21 +402,85 @@ class HelperTest extends TestCase
         $b = 2;
         $c = 3;
 
-        $resultGlobalFunc = \ZXC\Native\Helper::callCallback('callbackHelper', $a, $b, $c);
+        $resultGlobalFunc = Helper::callCallback('callbackHelper', $a, $b, $c);
         $this->assertSame(6, $resultGlobalFunc);
 
-        $methodResult = \ZXC\Native\Helper::callCallback('Qwe:ert', 'string1', 123);
+        $methodResult = Helper::callCallback('Qwe:ert', 'string1', 123);
         $this->assertTrue($methodResult);
 
-        $methodResult = \ZXC\Native\Helper::callCallback('Qwe:stErt', 'string1', 123);
+        $methodResult = Helper::callCallback('Qwe:stErt', 'string1', 123);
         $this->assertTrue($methodResult);
 
-        $methodResult = \ZXC\Native\Helper::callCallback(function ($str, $int) {
+        $methodResult = Helper::callCallback(function ($str, $int) {
             return $str === 'string2' && $int === 1212;
         }, 'string1', 123);
         $this->assertFalse($methodResult);
 
-        \ZXC\Native\Helper::callCallback('callbackHelpeasdfasdfkljfasdr', $a, $b, $c);
+        Helper::callCallback('callbackHelpeasdfasdfkljfasdr', $a, $b, $c);
 
+    }
+
+    public function testIsWritable()
+    {
+        $writable = ['w', 'w+', 'rw', 'r+', 'x+',
+            'c+', 'wb', 'w+b', 'r+b',
+            'x+b', 'c+b', 'w+t', 'r+t',
+            'x+t', 'c+t', 'a', 'a+'
+        ];
+//        $readable = [
+//            'r', 'w+', 'r+', 'x+', 'c+',
+//            'rb', 'w+b', 'r+b', 'x+b',
+//            'c+b', 'rt', 'w+t', 'r+t',
+//            'x+t', 'c+t', 'a+'];
+        foreach ($writable as $item) {
+            $result = Helper::isWritable($item);
+            $this->assertTrue($result);
+        }
+
+        $result = Helper::isWritable('r');
+        $this->assertFalse($result);
+
+    }
+
+    /**
+     * @method testCreateInstanceOfClass
+     * @throws ReflectionException
+     */
+    public function testCreateInstanceOfClass()
+    {
+        $instance = Helper::createInstanceOfClass('Qwe');
+        $this->assertTrue($instance instanceof Qwe);
+    }
+
+    /**
+     * @method testCreateInstanceOfClassException
+     * @throws ReflectionException
+     * @expectedException InvalidArgumentException
+     */
+    public function testCreateInstanceOfClassException()
+    {
+        Helper::createInstanceOfClass();
+    }
+
+    /**
+     * @method testCreateInstanceOfClassWithArguments
+     * @throws ReflectionException
+     */
+    public function testCreateInstanceOfClassWithArguments()
+    {
+        /**
+         * @var ArgT $instance
+         */
+        $instance = Helper::createInstanceOfClass('ArgT', 123);
+        $this->assertSame(123, $instance->getArg());
+    }
+
+    /**
+     * @method testCreateInstanceOfUndefinedClass
+     */
+    public function testClassUsesTrait()
+    {
+        $this->assertTrue(Helper::classUsesTrait('ArgT', 'ArgTrait'));
+        $this->assertFalse(Helper::classUsesTrait('Abc', 'ArgTrait'));
     }
 }

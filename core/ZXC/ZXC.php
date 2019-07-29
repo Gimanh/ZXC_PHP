@@ -4,17 +4,24 @@ namespace ZXC;
 
 require_once 'Native/Autoload.php';
 
-use ZXC\Modules\Logger\Logger;
-use ZXC\Native\HTTP\Response;
-use ZXC\Native\I18N;
-use ZXC\Modules\Mailer\Mail;
-use ZXC\Native\ModulesManager;
-use ZXC\Native\Route;
-use ZXC\Patterns\Singleton;
-use ZXC\Native\Autoload;
-use ZXC\Native\HTTP\Request;
+use Exception;
+use ErrorException;
+use Psr\Log\LogLevel;
 use ZXC\Native\Config;
+use ZXC\Native\Helper;
+use ZXC\Native\PSR\Request;
 use ZXC\Native\Router;
+use ZXC\Native\Autoload;
+use ReflectionException;
+use ZXC\Patterns\Singleton;
+use ZXC\Native\PSR\Response;
+use InvalidArgumentException;
+use ZXC\Modules\Logger\Logger;
+use ZXC\Native\ModulesManager;
+use ZXC\Native\HTTP\ZXCResponse;
+use ZXC\Native\PSR\ServerRequest;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class ZXC implements Interfaces\ZXC
 {
@@ -23,9 +30,13 @@ class ZXC implements Interfaces\ZXC
 
     private $version = '0.0.1-a';
     /**
-     * @var Request
+     * @var ServerRequestInterface
      */
     private $request = null;
+    /**
+     * @var ResponseInterface
+     */
+    private $response = null;
     /**
      * @var Logger
      */
@@ -35,79 +46,78 @@ class ZXC implements Interfaces\ZXC
      */
     private $router = null;
     /**
-     * Not found handler
+     * Not found handler MUST return modified given ResponseInterface
      * @var null
      */
-    private $notFound = null;
+    private $notFoundHandler = null;
     /**
      * @var string|callable
      */
     private $responseCreator = null;
 
     private $logFileName = 'ZXC_SYS.log';
+    /**
+     * Value of header Accept-Language
+     * @var string
+     */
+    public static $lang = 'en';
+
+    private $loggerEnable = true;
+
+    private static $ip;
+
+    /**
+     * @return mixed
+     */
+    public static function getIp()
+    {
+        return self::$ip;
+    }
 
     /**
      * @param array $config
+     * @throws ReflectionException
      */
     public function initialize(array $config = null)
     {
+        $this->request = new ServerRequest($_SERVER, $_COOKIE, $_FILES);
+        $this->response = new Response();
+
+        static::$ip = Helper::getIp();
         if ($config) {
             Config::initialize($config);
 
-            $haveRouterConfig = Config::get('ZXC/Router');
-            if (!$haveRouterConfig) {
-                throw new \InvalidArgumentException('ZXC/Router is not defined');
+            $this->checkConfig();
+
+            Autoload::initialize(Config::get('ZXC/Autoload'));
+
+            $modules = Config::get('ZXC/Modules');
+
+            if ($modules) {
+                ModulesManager::installModules(Config::get('ZXC/Modules'));
+                $this->logger = ModulesManager::getModule('logger');
             }
 
             $this->router = Router::getInstance();
-            $this->router->initialize($haveRouterConfig);
-
-            $modules = Config::get('ZXC/Modules');
-            ModulesManager::installModules($modules);
-
-            $this->logger = ModulesManager::getNewModule('Logger');
-            if ($this->logger) {
-                $this->logger->setLogsFolder(Config::get('ZXC/Modules/Logger/options/folder'));
-                $this->logger->setLogFileName($this->logFileName);
-            }
-
-            $haveConfigForAutoloadDir = Config::get('ZXC/Autoload');
-            if ($haveConfigForAutoloadDir) {
-                $autoloadInstance = Autoload::getInstance();
-                $autoloadInstance->initialize($haveConfigForAutoloadDir);
-            }
-
-            $this->request = Request::getInstance();
-            if ($this->haveServerParametersForWorking()) {
-                $this->request->initialize($_SERVER);
-            }
+            $this->router->initialize(Config::get('ZXC/Router'));
 
             $this->detectLanguage();
         }
     }
 
-    public function detectLanguage()
+    private function checkConfig()
     {
-        if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-            $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-            $acceptLang = Config::get('ZXC/Lang');
-            if (!$acceptLang) {
-                $acceptLang = ['en'];
-            }
-            $lang = in_array($lang, $acceptLang) ? $lang : null;
-            $localeFile = ZXC_ROOT . DIRECTORY_SEPARATOR . 'locales' . DIRECTORY_SEPARATOR . $lang . '.php';
-            if (file_exists($localeFile)) {
-                $locale = require_once $localeFile;
-                I18N::initialize($locale);
-            }
+        if (!Config::get('ZXC/Router')) {
+            throw new InvalidArgumentException('ZXC/Router is required');
         }
     }
 
-    public function haveServerParametersForWorking()
+    public function detectLanguage()
     {
-        return isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SERVER_NAME']) &&
-            isset($_SERVER['SERVER_PORT']) && isset($_SERVER['REQUEST_METHOD']) &&
-            isset($_SERVER['REQUEST_URI']) && isset($_SERVER['SERVER_PROTOCOL']);
+        if ($this->request->hasHeader('Accept-Language')) {
+            $value = $this->request->getHeaderLine('Accept-Language');
+            self::$lang = substr($value, 0, 2);
+        }
     }
 
     public function writeLog($msg = '', $param = [])
@@ -120,12 +130,37 @@ class ZXC implements Interfaces\ZXC
     }
 
     /**
+     * @param string $msg
+     * @param array $param
+     * @param string $fileName
+     * @param string $logLvl
+     * @return bool
+     * @throws Exception
+     * @method log
+     */
+    public static function log($msg = '', $param = [], $fileName = '', $logLvl = LogLevel::INFO)
+    {
+        $ZXC = ZXC::getInstance();
+        if (!$ZXC->loggerEnable) {
+            return false;
+        }
+        $logger = $ZXC->logger;
+        if ($logger) {
+            if ($fileName) {
+                $logger = $logger->withLogFileName($fileName);
+            }
+            $logger->log($logLvl, $msg, $param);
+        }
+        return true;
+    }
+
+    /**
      * @param $lvl
      * @param $message
      * @param $file
      * @param $line
      * @return bool
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     public function errorHandler($lvl, $message, $file, $line)
     {
@@ -145,7 +180,7 @@ class ZXC implements Interfaces\ZXC
         if (0 === error_reporting()) {
             return false;
         }
-        throw new \ErrorException($message, 0, $lvl, $file, $line);
+        throw new ErrorException($message, 0, $lvl, $file, $line);
     }
 
     /**
@@ -157,7 +192,7 @@ class ZXC implements Interfaces\ZXC
     }
 
     /**
-     * @return Request
+     * @return ServerRequestInterface|Request
      */
     public function getRequest()
     {
@@ -183,43 +218,16 @@ class ZXC implements Interfaces\ZXC
     public function go()
     {
         set_error_handler([$this, 'errorHandler']);
-
-        ob_start();
-        $body = '';
-        $routeHandler = '';
         try {
-            /**
-             * @var $routeParams Route
-             */
-            if (!$this->router) {
-                throw new \Exception('Router config is not defined');
-            }
-            $this->router->callMiddleware();
-            $method = $this->request->getMethod();
-            $routeParams = $this->router->getRouteWithParamsFromURI($this->request->getPath(), $method);
-            if (!$routeParams) {
-                throw new \Exception('Can not get router params');
-            }
-            $routeHandler = $routeParams->executeRoute($this);
-//            Response::setResponseHttpCode(200);
-            $body = ob_get_clean();
-        } catch (\InvalidArgumentException $e) {
-            Response::setResponseHttpCode(500);
-            $this->writeLog($e->getMessage() . ' ' . uniqid());
-            ob_end_clean();
-        } catch (\Exception $e) {
-            Response::setResponseHttpCode(500);
-            $this->writeLog($e->getMessage() . ' ' . uniqid());
-            ob_end_clean();
+            $routeHandlerResult = $this->router->go();
+            ZXCResponse::sendResponse($routeHandlerResult);
+        } catch (InvalidArgumentException $e) {
+            ZXCResponse::sendError($this, 500, $e->getMessage());
+        } catch (Exception $e) {
+            ZXCResponse::sendError($this, 500, $e->getMessage());
         }
-        if ($this->responseCreator) {
-            //TODO
-        } else {
-            Response::addHeaders(['Content-Type' => ['application/json']]);
-            echo Response::sendResponse($body, $routeHandler);
-        }
-        return true;
     }
+
 
     /**
      * @return string
@@ -227,5 +235,46 @@ class ZXC implements Interfaces\ZXC
     public function getLogFileName()
     {
         return $this->logFileName;
+    }
+
+    /**
+     * @return ResponseInterface | Response
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
+    /**
+     * @param callable | string $callback - Class:method
+     * @method setNotFoundHandler
+     */
+    public function setNotFoundHandler($callback)
+    {
+        $this->notFoundHandler = $callback;
+    }
+
+    /**
+     * @return null
+     */
+    public function getNotFoundHandler()
+    {
+        return $this->notFoundHandler;
+    }
+
+    /**
+     * @param ResponseInterface $response
+     */
+    public function setResponse(ResponseInterface $response)
+    {
+        $this->response = $response;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     */
+    public function setRequest($request)
+    {
+        $this->request = $request;
     }
 }

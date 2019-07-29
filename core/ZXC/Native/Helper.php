@@ -2,7 +2,11 @@
 
 namespace ZXC\Native;
 
+use DirectoryIterator;
+use ReflectionClass;
+use ReflectionException;
 use ZXC\Patterns\Singleton;
+use InvalidArgumentException;
 
 class Helper
 {
@@ -110,8 +114,8 @@ class Helper
      * Must contain at least 1 number
      * Must contain at least one uppercase character
      * Must contain at least one lowercase character
-     * @link https://stackoverflow.com/questions/8141125/regex-for-password-php
      * @return bool
+     * @link https://stackoverflow.com/questions/8141125/regex-for-password-php
      */
     public static function isValidStrongPassword($password)
     {
@@ -149,7 +153,7 @@ class Helper
     public static function getPasswordHash($password = null, $cost = 10)
     {
         if ($password === null) {
-            throw new \InvalidArgumentException('Password is not defined');
+            throw new InvalidArgumentException('Password is not defined');
         }
         $options = [
             'cost' => $cost,
@@ -252,22 +256,34 @@ class Helper
         return $result;
     }
 
-    public static function createInstanceOfClass($className)
+    /**
+     * @param $className
+     * @method createInstanceOfClass
+     * @return mixed|object
+     * @throws ReflectionException
+     */
+    public static function createInstanceOfClass($className = null)
     {
-        //TODO TEST
+        $args = func_get_args();
         if (!$className) {
-            throw new \InvalidArgumentException('Class name is required');
+            throw new InvalidArgumentException('Class name is required');
         }
+
         if (self::classUsesTrait($className, 'ZXC\Patterns\Singleton')) {
             return call_user_func($className . '::getInstance');
         }
-        //TODO ERROR HANDLE
-        return new $className;
+
+        if (count($args) > 1) {
+            $r = new ReflectionClass($className);
+            unset($args[0]);
+            return $r->newInstanceArgs($args);
+        } else {
+            return new $className;
+        }
     }
 
     public static function classUsesTrait($className, $traitName)
     {
-        // TODO TEST
         $traits = class_uses($className, true);
         if ($traits) {
             return in_array($traitName, $traits, true);
@@ -338,7 +354,7 @@ class Helper
     public static function parseCallbackString($classString)
     {
         if (!$classString) {
-            throw new \InvalidArgumentException('Undefined $classString');
+            throw new InvalidArgumentException('Undefined $classString');
         }
         $classAndMethod = explode(':', $classString);
         if (!$classAndMethod || count($classAndMethod) !== 2) {
@@ -356,6 +372,7 @@ class Helper
     /**
      * @param string|callable $callback Class:methodName or function
      * @return mixed
+     * @throws ReflectionException
      */
     public static function callCallback($callback)
     {
@@ -367,7 +384,7 @@ class Helper
                 if (function_exists($callback)) {
                     return call_user_func_array($callback, $args);
                 } else {
-                    throw new \InvalidArgumentException('Argument ' . $callback . ' not found');
+                    throw new InvalidArgumentException('Argument ' . $callback . ' not found');
                 }
             } else {
                 $instance = Helper::createInstanceOfClass($classMethod['class']);
@@ -376,7 +393,7 @@ class Helper
         } elseif (is_callable($callback)) {
             return call_user_func_array($callback, $args);
         } else {
-            throw new \InvalidArgumentException('Argument $callback error see PHPDOC');
+            throw new InvalidArgumentException('Argument $callback error see PHPDOC');
         }
     }
 
@@ -392,5 +409,183 @@ class Helper
         $string = str_replace(['-', '_'], ['+', '/'], $string);
         $string = base64_decode($string);
         return $string;
+    }
+
+    /**
+     * Returns true if writable flag found in $mode
+     * @param string $mode - stream_get_meta_data($stream)['mode']
+     * @return bool
+     */
+    public static function isWritable($mode)
+    {
+        $writable = ['w', 'w+', 'rw', 'r+', 'x+',
+            'c+', 'wb', 'w+b', 'r+b',
+            'x+b', 'c+b', 'w+t', 'r+t',
+            'x+t', 'c+t', 'a', 'a+'
+        ];
+        return in_array($mode, $writable);
+    }
+
+    /**
+     * Returns true if readable flag found in $mode
+     * @param string $mode - stream_get_meta_data($stream)['mode']
+     * @return bool
+     */
+    public static function isReadable($mode)
+    {
+        $readable = [
+            'r', 'w+', 'r+', 'x+', 'c+',
+            'rb', 'w+b', 'r+b', 'x+b',
+            'c+b', 'rt', 'w+t', 'r+t',
+            'x+t', 'c+t', 'a+'];
+        return in_array($mode, $readable);
+    }
+
+    public static function getPsrServerHeaders()
+    {
+        $psrHeaders = [];
+        $allHeaders = getallheaders();
+        foreach ($allHeaders as $name => $value) {
+            if (!is_array($value)) {
+                $value = [$value];
+            }
+            $psrHeaders[$name] = $value;
+        }
+        return $psrHeaders;
+    }
+
+    /**
+     * @method getIp
+     * @link https://stackoverflow.com/a/13646735
+     * @return mixed
+     */
+    public static function getIp()
+    {
+        // Get real visitor IP behind CloudFlare network
+        if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+            $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+            $_SERVER['HTTP_CLIENT_IP'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+        }
+        $client = @$_SERVER['HTTP_CLIENT_IP'];
+        $forward = @$_SERVER['HTTP_X_FORWARDED_FOR'];
+        $remote = $_SERVER['REMOTE_ADDR'];
+
+        if (filter_var($client, FILTER_VALIDATE_IP)) {
+            $ip = $client;
+        } elseif (filter_var($forward, FILTER_VALIDATE_IP)) {
+            $ip = $forward;
+        } else {
+            $ip = $remote;
+        }
+
+        return $ip;
+    }
+
+
+    /**
+     * @param $argv
+     * @method getArgs
+     * @return array
+     */
+    public static function getArgs($argv)
+    {
+        $my_args = array();
+        for ($i = 1; $i < count($argv); $i++) {
+            if (preg_match('/^--([^=]+)=(.*)/', $argv[$i], $match)) {
+                $my_args[$match[1]] = $match[2];
+            }
+        }
+        return $my_args;
+    }
+
+    public static function fetchFilesTreeWithExtension(DirectoryIterator $dir, $ext)
+    {
+        $data = [];
+        if ($ext) {
+            foreach ($dir as $node) {
+                $nodeName = $node->getFilename();
+                if ($node->isDir() && !$node->isDot()) {
+                    $data[$nodeName] = self::fetchFilesTreeWithExtension(new DirectoryIterator($node->getPathname()), $ext);
+                } else if ($node->isFile() && $node->getExtension() === $ext) {
+                    $data[] = $node->getFilename();
+                }
+            }
+        }
+        return $data;
+    }
+
+    public static function minifyPHPCode($filePath)
+    {
+        return php_strip_whitespace($filePath);
+    }
+
+
+    public static function getFilesList($pattern = 'README.md', $flags = 0, $ignoreList = [])
+    {
+        $files = glob($pattern, $flags);
+        $dirName = dirname($pattern);
+
+        $ignoreDir = function ($currentDir) use ($ignoreList) {
+            foreach ($ignoreList as $item) {
+                if (strpos($currentDir, $item)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        foreach (glob($dirName . '/*', GLOB_ONLYDIR | GLOB_NOSORT) as $dir) {
+            if (!$ignoreDir($dir)) {
+                $files = array_merge($files, self::getFilesList($dir . '/' . basename($pattern), $flags, $ignoreList));
+            }
+        }
+        return $files;
+    }
+
+    public static function rRmdir($dir)
+    {
+        if (is_dir($dir)) {
+            $objects = scandir($dir);
+            foreach ($objects as $object) {
+                if ($object != "." && $object != "..") {
+                    if (is_dir($dir . "/" . $object))
+                        self::rRmdir($dir . "/" . $object);
+                    else
+                        unlink($dir . "/" . $object);
+                }
+            }
+            rmdir($dir);
+        }
+    }
+
+    public static function rCopy($src, $dest)
+    {
+        // If source is not a directory stop processing
+        if (!is_dir($src)) return false;
+        // If the destination directory does not exist create it
+        if (!is_dir($dest)) {
+            if (!mkdir($dest)) {
+                // If the destination directory could not be created stop processing
+                return false;
+            }
+        }
+        // Open the source directory to read in files
+        $i = new DirectoryIterator($src);
+        foreach ($i as $f) {
+            if ($f->isFile()) {
+                copy($f->getRealPath(), "$dest/" . $f->getFilename());
+            } else if (!$f->isDot() && $f->isDir()) {
+                self::rCopy($f->getRealPath(), "$dest/$f");
+            }
+        }
+        return true;
+    }
+
+    public static function getLogFileName($classObjectOrClassName)
+    {
+        if(is_string($classObjectOrClassName)){
+            return str_replace('\\', '_', $classObjectOrClassName) . '.log';
+        }
+        return str_replace('\\', '_', get_class($classObjectOrClassName)) . '.log';
     }
 }
