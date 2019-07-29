@@ -28,17 +28,17 @@ return [
 
                 ]
             ],
-            'DB' => [
-                'class' => 'ZXC\Native\DB',
-                'options' => [
-                    'dbname' => 'zxc',
-                    'dbtype' => 'pgsql',
-                    'host' => 'localhost',
-                    'port' => 5432,
-                    'user' => 'postgres',
-                    'password' => '123456'
-                ]
-            ],
+//            'DB' => [
+//                'class' => 'ZXC\Native\DB',
+//                'options' => [
+//                    'dbname' => 'zxc',
+//                    'dbtype' => 'pgsql',
+//                    'host' => 'localhost',
+//                    'port' => 5432,
+//                    'user' => 'postgres',
+//                    'password' => '123456'
+//                ]
+//            ],
             'Mailer' => [
                 'class' => 'ZXC\Modules\Mailer\Mail',
                 'options' => [

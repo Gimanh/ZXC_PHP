@@ -39,17 +39,17 @@ class ModulesManagerTest extends PHPUnit\Framework\TestCase
 
             ]
         ],
-        'DB' => [
-            'class' => 'ZXC\Native\DB',
-            'options' => [
-                'dbname' => 'zxc',
-                'dbtype' => 'pgsql',
-                'host' => 'localhost',
-                'port' => 5432,
-                'user' => 'postgres',
-                'password' => '123456'
-            ]
-        ],
+//        'DB' => [
+//            'class' => 'ZXC\Native\DB',
+//            'options' => [
+//                'dbname' => 'zxc',
+//                'dbtype' => 'pgsql',
+//                'host' => 'localhost',
+//                'port' => 5432,
+//                'user' => 'postgres',
+//                'password' => '123456'
+//            ]
+//        ],
         'Mailer' => [
             'class' => 'ZXC\Modules\Mailer\Mail',
             'options' => [
@@ -99,7 +99,7 @@ class ModulesManagerTest extends PHPUnit\Framework\TestCase
     {
         $this->assertTrue(ModulesManager::installModules($this->modules));
         $this->assertSame($this->modules, ModulesManager::getModulesOptions());
-        $this->assertSame(3, count(ModulesManager::getModulesInstances()));
+        $this->assertSame(2, count(ModulesManager::getModulesInstances()));
     }
 
     public function testUninstallModules()
@@ -161,7 +161,7 @@ class ModulesManagerTest extends PHPUnit\Framework\TestCase
         $options = ModulesManager::getModulesOptions();
         $this->assertSame($this->modules, $options);
         $instances = ModulesManager::getModulesInstances();
-        $this->assertSame(3, count($instances));
+        $this->assertSame(2, count($instances));
         ModulesManager::destroy();
 
         $options = ModulesManager::getModulesOptions();
