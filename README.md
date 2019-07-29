@@ -4,7 +4,20 @@
 <h2 align="center">ZXC_PHP</h2>  
 
 
-#### Autoload config  
+#### How to use
+
+* Create your index.php with the following contents
+
+```php
+//require your configuration, this variable must have name $config
+$config = require '../config/config.php';
+//require zxc framework
+$zxc = require '../server/ZXC_PHP/core/index.php';
+//run you application
+$zxc->go();
+```
+  
+#### Configuration  
 ```php
 'ZXC' => [
         ....
