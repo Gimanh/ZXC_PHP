@@ -161,7 +161,7 @@ class TokenTest extends TestCase
         $jwt = Token::encode($payload, $secretKey);
         $decoded = Token::decode($jwt, $secretKey);
         $this->assertFalse($decoded);
-        $this->assertSame('Invalid JWT iat', Token::getReportMessage());
+        $this->assertSame('Invalid JWT "iat" issued at', Token::getReportMessage());
     }
 
     /**
