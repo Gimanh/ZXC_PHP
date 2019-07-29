@@ -18,73 +18,42 @@ $zxc->go();
 ```
   
 #### Configuration  
+Configuration for ZXC_PHP is simple php file which returns array with the following structure
 ```php
-'ZXC' => [
-        ....
-        'Autoload' => [
-            '../../../server' => true
-        ],
-        ...
-    ]
-```
-#### Structure SQL  
-##### StructureControl  
-```php
-'ZXC' => [
-        ....
+
+return [
+    //All details for config see below
+    'ZXC' => [
         'Modules' => [
-            'Structures' => [
-                'class' => '\ZXC\Modules\SQL\StructureControl',
+            'ModuleName' => [
+                'class' => '\Class\With\Full\Namespace\ClassName',
                 'options' => [
-                    'dir' => '../../../server/Structures'
+                    //any options for module
                 ]
-            ],
+            ]
         ],
-        ...
+        'Autoload' => [
+            /**
+             * root is ZXC_ROOT (index directories)
+             */
+            '../../' => true,
+            '' => true
+        ],
+        'Router' => [
+           //here is router config
+        ]
     ]
+];
+
 ```
 
 #### Routing  
 ```php
 'ZXC' => [
     'Router' => [
-        'methods' => ['POST' => true, 'GET' => true, 'OPTIONS' => true],
-        'routes' => [
-            [
-                'route' => 'POST|/|MyClasesNamespace\BestClass:create'
-            ],
-            [
-                'route' => 'POST|/|FakeClassForTest:fakeMethod'
-            ],
-            [
-                'route' => 'GET|/',
-                'before' => function () {
-                    return ' before';
-                },
-                'callback' => function ($zxc, $params) {
-                    return $params['resultBefore'] . ' <= HI! => ';
-                },
-                'after' => function ($zxc, $params) {
-    
-                    return $params['resultMain'] . 'after';
-                },
-                'hooksResultTransfer' => true
-            ],
-            [
-                'route' => 'GET|/:user',
-                'before' => function () {
-                    return 'You are the best ';
-                },
-                'callback' => function ($zxc, $params) {
-                    return $params['resultBefore'] . 'user "' . $params['routeParams']['user'] . '"';
-                },
-                'after' => function ($zxc, $params) {
-                    return $params['resultMain'] . ' after me %)';
-                },
-                'hooksResultTransfer' => true
-            ]
-        ],
-    ]
+        
+    ],
+ ]
 ]
 ```
 
