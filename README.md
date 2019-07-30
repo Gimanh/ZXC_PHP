@@ -4,7 +4,7 @@
 <h2 align="center">ZXC_PHP</h2>  
 
 
-#### How to use
+## How to use
 
 * Create your index.php with the following contents
 
@@ -18,6 +18,10 @@ $zxc->go();
 ```
 
 See [example here](https://github.com/Gimanh/ZXC_PHP/tree/examples)  
+
+
+## Web server settings  
+See [documentation here](https://github.com/Gimanh/ZXC_PHP/wiki/Web-server-settings)
 
 
 #### Configuration  
