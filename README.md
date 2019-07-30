@@ -7,6 +7,13 @@
 ##Contribute 
 Everyone is welcome to contribute!
 
+An open source project is:
+* Live emotions, communication with people around the world.  
+* Access to accumulated knowledge and previous experience.  
+* The maximum required approach to writing code, documentation and tests.
+* Teamwork on the task.
+* Openness to end users.  
+
 ## How to use
 
 * Create your index.php with the following contents
