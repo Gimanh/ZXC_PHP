@@ -16,7 +16,10 @@ $zxc = require '../server/ZXC_PHP/core/index.php';
 //run you application
 $zxc->go();
 ```
-  
+
+See [example here](https://github.com/Gimanh/ZXC_PHP/tree/examples)  
+
+
 #### Configuration  
 Configuration for ZXC_PHP is simple php file which returns array with the following structure
 ```php
