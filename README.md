@@ -4,6 +4,9 @@
 <h2 align="center">ZXC_PHP</h2>  
 
 
+##Contribute 
+Everyone is welcome to contribute!
+
 ## How to use
 
 * Create your index.php with the following contents
