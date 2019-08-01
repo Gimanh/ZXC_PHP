@@ -1,12 +1,7 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: user
- * Date: 15.11.2018
- * Time: 14:35
- */
 
 namespace ZXC\Native;
+use InvalidArgumentException;
 
 /**
  * @method static void emergency($message, array $context = array());
@@ -22,11 +17,17 @@ namespace ZXC\Native;
  */
 class Log
 {
+    /**
+     * @param $method
+     * @param $args
+     * @method __callStatic
+     * @throws \ReflectionException
+     */
     public static function __callStatic($method, $args)
     {
         $logger = ModulesManager::getModule('Logger');
         if (!$logger) {
-            throw new \InvalidArgumentException('Logger module is not defined');
+            throw new InvalidArgumentException('Logger module is not defined');
         }
         call_user_func_array([$logger, $method], $args);
     }

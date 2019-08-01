@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: user
- * Date: 12.11.2018
- * Time: 15:11
- */
 
 namespace ZXC\Interfaces;
 
@@ -28,7 +22,7 @@ interface ModulesManager
     /**
      * Returns Module
      * @param string $moduleName 'StructureControl'
-     * @return Module|null
+     * @return IModule|null
      */
     public static function getModule($moduleName);
 
@@ -36,7 +30,16 @@ interface ModulesManager
      * Returns new instance of Module
      * @param string $moduleName 'StructureControl'
      * @param array|null $options
-     * @return Module|null
+     * @return IModule|null
      */
     public static function getNewModule($moduleName, array $options = null);
+
+    /**
+     * @param string $moduleName case insensitive name
+     * @method hasModule
+     * @return mixed
+     */
+    public static function hasModule($moduleName);
+
+    public static function destroy();
 }

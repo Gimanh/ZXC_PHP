@@ -1,104 +1,76 @@
 <p align="center">
   <img width="300" height="300" src="Logo.png">
 </p>
-<h2 align="center">ZXC_PHP</h2> . 
+<h2 align="center">ZXC_PHP</h2>  
 
 
-##Getting Started
+## Contribute  
+Everyone is welcome to contribute!  
 
-###Project folder structure
-This guide will describe the parameters based on the following structure of project directories
+An open source project is:
+* Live emotions, communication with people around the world.  
+* Access to accumulated knowledge and previous experience.  
+* The maximum required approach to writing code, documentation and tests.
+* Teamwork on the task.
+* Openness to end users.  
 
-    ├── MyProject
-    │   ├── Structures
-    │   |   |   └+──StructAuth.php
-    │   ├── config
-    |   |   └+──config.php
-    │   ├── server
-    |   |   ├──MyClases
-    |   |   |   └+──-MyClases\BestClass.php # MyClases\ is namespace
-    |   |   ├──ZXC_PHP
-    |   |       └── core
-    |   |          └+---index.php #This is ROOT dir for ZXC_PHP
-    │   ├── web  
-    |   |   +──index.php 
-    │   └──        
-    └── ...
+## How to use
 
-###Config file description
+* Create your index.php with the following contents
+
 ```php
-'ZXC' => [
-        ...Other config description for ZXC_PHP...
-    ]
+//require your configuration, this variable must have name $config
+$config = require '../config/config.php';
+//require zxc framework
+$zxc = require '../server/ZXC_PHP/core/index.php';
+//run you application
+$zxc->go();
 ```
-#### Autoload config
+
+See [example here](https://github.com/Gimanh/ZXC_PHP/tree/examples)  
+
+
+## Web server settings  
+See [documentation here](https://github.com/Gimanh/ZXC_PHP/wiki/Web-server-settings)
+
+
+#### Configuration  
+Configuration for ZXC_PHP is simple php file which returns array with the following structure
 ```php
-'ZXC' => [
-        ....
-        'Autoload' => [
-            '../../../server' => true
-        ],
-        ...
-    ]
-```
-#### Structure SQL  
-##### StructureControl  
-```php
-'ZXC' => [
-        ....
+
+return [
+    //All details for config see below
+    'ZXC' => [
         'Modules' => [
-            'Structures' => [
-                'class' => '\ZXC\Modules\SQL\StructureControl',
+            'ModuleName' => [
+                'class' => '\Class\With\Full\Namespace\ClassName',
                 'options' => [
-                    'dir' => '../../../server/Structures'
+                    //any options for module
                 ]
-            ],
+            ]
         ],
-        ...
+        'Autoload' => [
+            /**
+             * root is ZXC_ROOT (index directories)
+             */
+            '../../' => true,
+            '' => true
+        ],
+        'Router' => [
+           //here is router config
+        ]
     ]
+];
+
 ```
 
 #### Routing  
 ```php
 'ZXC' => [
     'Router' => [
-        'methods' => ['POST' => true, 'GET' => true, 'OPTIONS' => true],
-        'routes' => [
-            [
-                'route' => 'POST|/|MyClasesNamespace\BestClass:create'
-            ],
-            [
-                'route' => 'POST|/|FakeClassForTest:fakeMethod'
-            ],
-            [
-                'route' => 'GET|/',
-                'before' => function () {
-                    return ' before';
-                },
-                'callback' => function ($zxc, $params) {
-                    return $params['resultBefore'] . ' <= HI! => ';
-                },
-                'after' => function ($zxc, $params) {
-    
-                    return $params['resultMain'] . 'after';
-                },
-                'hooksResultTransfer' => true
-            ],
-            [
-                'route' => 'GET|/:user',
-                'before' => function () {
-                    return 'You are the best ';
-                },
-                'callback' => function ($zxc, $params) {
-                    return $params['resultBefore'] . 'user "' . $params['routeParams']['user'] . '"';
-                },
-                'after' => function ($zxc, $params) {
-                    return $params['resultMain'] . ' after me %)';
-                },
-                'hooksResultTransfer' => true
-            ]
-        ],
-    ]
+        
+    ],
+ ]
 ]
 ```
 

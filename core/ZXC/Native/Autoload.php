@@ -11,9 +11,8 @@ require_once ZXC_ROOT . DIRECTORY_SEPARATOR . 'ZXC' . DIRECTORY_SEPARATOR
 require_once ZXC_ROOT . DIRECTORY_SEPARATOR . 'ZXC' . DIRECTORY_SEPARATOR
     . 'Interfaces' . DIRECTORY_SEPARATOR . 'ZXC.php';
 
-
-
 use ZXC\Patterns\Singleton;
+use InvalidArgumentException;
 
 class Autoload
 {
@@ -25,10 +24,10 @@ class Autoload
      * @param array $config ['dirPath'=>true]
      * @return bool
      */
-    public function initialize(array $config = [])
+    public static function initialize(array $config = [])
     {
         if ($config) {
-            $this->setAutoloadDirectories($config);
+            self::setAutoloadDirectories($config);
             return true;
         }
         return false;
@@ -47,10 +46,10 @@ class Autoload
      * @param array $dir
      * @return bool
      */
-    public function setAutoloadDirectories(array $dir)
+    public static function setAutoloadDirectories(array $dir)
     {
         if (!Helper::isAssoc($dir)) {
-            return false;
+            throw new InvalidArgumentException($dir . ' must be assoc array');
         }
         self::$autoloadDirectories = array_merge(
             self::$autoloadDirectories, $dir
@@ -63,7 +62,7 @@ class Autoload
      * @param string $dir
      * @return bool
      */
-    public function disableAutoloadDirectories($dir)
+    public static function disableAutoloadDirectories($dir)
     {
         if (isset(self::$autoloadDirectories[$dir])) {
             self::$autoloadDirectories[$dir] = false;
@@ -79,7 +78,7 @@ class Autoload
      * @param string $dir
      * @return bool
      */
-    public function enableAutoloadDirectories($dir)
+    public static function enableAutoloadDirectories($dir)
     {
         if (isset(self::$autoloadDirectories[$dir])) {
             self::$autoloadDirectories[$dir] = true;
@@ -95,7 +94,7 @@ class Autoload
      * @param string $dir
      * @return bool
      */
-    public function removeAutoloadDirectories($dir)
+    public static function removeAutoloadDirectories($dir)
     {
         if (isset(self::$autoloadDirectories[$dir])) {
             unset(self::$autoloadDirectories[$dir]);

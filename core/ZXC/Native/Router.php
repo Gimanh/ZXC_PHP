@@ -2,14 +2,20 @@
 
 namespace ZXC\Native;
 
-use ZXC\Patterns\Singleton;
 use ZXC\ZXC;
+use ReflectionException;
+use ZXC\Patterns\Singleton;
+use ZXC\Native\PSR\Response;
+use InvalidArgumentException;
+use Psr\Http\Message\UriInterface;
+use Psr\Http\Message\ResponseInterface;
 
 class Router
 {
     use Singleton;
     private $middleware = null;
     private $routes = [];
+    protected $preflight = null;
     private $allowedMethods = ['POST' => true, 'GET' => true, 'OPTIONS' => true];
 
     /**
@@ -28,13 +34,16 @@ class Router
     public function initialize(array $config = [])
     {
         if (!$config || !isset($config['routes'])) {
-            throw new \InvalidArgumentException('Undefined routes in Router config');
+            throw new InvalidArgumentException('Undefined routes in Router config');
         }
         if (isset($config['methods'])) {
             $this->allowedMethods = $config['methods'];
         }
         if (isset($config['middleware'])) {
             $this->middleware = $config['middleware'];
+        }
+        if (isset($config['preflight'])) {
+            $this->preflight = $config['preflight'];
         }
         foreach ($config['routes'] as $routeParams) {
             $this->initializeRouteInstance($routeParams);
@@ -43,26 +52,17 @@ class Router
         return true;
     }
 
-    public function callMiddleware()
+    /**
+     * @method callMiddleware
+     * @param $name
+     * @return mixed|null
+     */
+    public function getMiddlewareHandler($name)
     {
-        if (!$this->middleware) {
-            return false;
+        if (isset($this->middleware[$name])) {
+            return $this->middleware[$name];
         }
-        foreach ($this->middleware as $key => $value) {
-            if (is_callable($this->middleware[$key])) {
-                call_user_func_array($this->middleware[$key], [ZXC::getInstance()]);
-            } else {
-                $classMethod = explode(':', $this->middleware[$key]);
-                $class = $classMethod[0];
-                $method = $classMethod[1];
-                $class = Helper::createInstanceOfClass($class);
-                if (!$class) {
-                    throw new \InvalidArgumentException('Can not create Instance Of Class ' . $class);
-                }
-                call_user_func_array([$class, $method], [ZXC::getInstance()]);
-            }
-        }
-        return true;
+        return null;
     }
 
     public function initializeRouteInstance($routeParams)
@@ -142,11 +142,11 @@ class Router
     public function getRouteWithParamsFromURI($requestPath, $requestMethod)
     {
         if (!$requestPath || !$requestMethod) {
-            throw new \InvalidArgumentException('Invalid  request path or request method');
+            throw new InvalidArgumentException('Invalid  request path or request method');
         }
 
         if (!isset($this->routes[$requestMethod])) {
-            throw new \InvalidArgumentException('Invalid requestMethod ' . $requestMethod);
+            throw new InvalidArgumentException('Invalid requestMethod ' . $requestMethod . ' set ' . $requestMethod . '=>true in config file');
         }
         /**
          * @var $route Route
@@ -170,6 +170,85 @@ class Router
                 return $route;
             }
         }
-        throw new \InvalidArgumentException('Route "' . $requestPath . '" not found');
+        return false;
+    }
+
+    public function getNormalizedPath(UriInterface $uri)
+    {
+        $path = $uri->getPath();
+        $baseRoute = dirname($_SERVER['SCRIPT_NAME']);
+        if ($path !== '/' && $baseRoute !== '/') {
+            $lastSlash = substr($path, -1);
+            if ($lastSlash === '/') {
+                $path = rtrim($path, '/');
+            }
+            if ($path === $baseRoute) {
+                $path = '/';
+            } elseif ($path !== $baseRoute) {
+                $position = strpos($path, $baseRoute);
+                if ($position === 0) {
+                    $path = str_replace($baseRoute, '', $path);
+                }
+            }
+        }
+        return $path;
+    }
+
+    /**
+     * @return ResponseInterface
+     * @throws ReflectionException
+     * @method go
+     */
+    public function go()
+    {
+        $ZXC = ZXC::getInstance();
+        $serverRequest = $ZXC->getRequest();
+        $method = $serverRequest->getMethod();
+        if ($method === 'OPTIONS') {
+            if (isset($this->allowedMethods[$method])) {
+                if ($this->allowedMethods[$method] === true) {
+                    return $this->callPreflight();
+                }
+            }
+        }
+        $routeParams = $this->getRouteWithParamsFromURI($this->getNormalizedPath($serverRequest->getUri()), $method);
+        if (!$routeParams) {
+            return $this->callNotFound();
+        }
+        $routeHandler = $routeParams->executeRoute();
+        if ($routeHandler instanceof ResponseInterface) {
+            return $routeHandler;
+        } else {
+            return $ZXC->getResponse()->write((string)$routeHandler);
+        }
+    }
+
+    /**
+     * @return mixed
+     * @throws ReflectionException
+     * @method callNotFound
+     */
+    private function callNotFound()
+    {
+        $ZXC = ZXC::getInstance();
+        $response = $ZXC->getResponse();
+        if ($ZXC->getNotFoundHandler()) {
+            return Helper::callCallback($ZXC->getNotFoundHandler(), $response);
+        } else {
+            return $response->withStatus(404)->write('Not Found');
+        }
+    }
+
+    /**
+     * @return ResponseInterface|Response
+     * @throws ReflectionException
+     * @method callPreflight
+     */
+    public function callPreflight()
+    {
+        if ($this->preflight) {
+            return Helper::callCallback($this->preflight, ZXC::getInstance()->getRequest(), ZXC::getInstance()->getResponse());
+        }
+        return ZXC::getInstance()->getResponse()->withStatus(400);
     }
 }

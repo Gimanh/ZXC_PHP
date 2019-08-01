@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: nikolaygiman
- * Date: 12/10/2018
- * Time: 23:46
- */
 
 namespace ZXC\Interfaces;
 

@@ -1,5 +1,7 @@
 <?php
 
+use ZXC\Native\Helper;
+use ZXC\Modules\Logger\Logger;
 use PHPUnit\Framework\TestCase;
 
 class LoggerTest extends TestCase
@@ -8,9 +10,9 @@ class LoggerTest extends TestCase
     {
         $loggerConfig = ['applevel' => 'debug', 'file' => 'zxc_test.log', 'folder' => '.' . DIRECTORY_SEPARATOR, 'root' => false];
 
-        $loggerInstance = new \ZXC\Modules\Logger\Logger($loggerConfig);
+        $loggerInstance = new Logger($loggerConfig);
 
-        $file = \ZXC\Native\Helper::fixDirectorySlashes($loggerConfig['folder'] . DIRECTORY_SEPARATOR . $loggerConfig['file']);
+        $file = Helper::fixDirectorySlashes($loggerConfig['folder'] . DIRECTORY_SEPARATOR . $loggerConfig['file']);
 
         $this->assertSame($file, $loggerInstance->getFullLogFilePath());
 
@@ -31,5 +33,11 @@ class LoggerTest extends TestCase
         $this->assertTrue(unlink($loggerInstance->getFullLogFilePath()));
 
         $this->assertFalse(file_exists($loggerInstance->getFullLogFilePath()));
+
+        $this->assertSame('zxc_test.log', $loggerInstance->getLogFileName());
+
+        $newLogFileName = 'newLogFileName.log';
+        $newInstance = $loggerInstance->withLogFileName($newLogFileName);
+        $this->assertSame($newLogFileName, $newInstance->getLogFileName());
     }
 }

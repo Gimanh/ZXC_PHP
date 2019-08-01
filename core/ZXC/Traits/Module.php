@@ -1,64 +1,39 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: user
- * Date: 13.11.2018
- * Time: 8:31
- */
 
 namespace ZXC\Traits;
 
-
 trait Module
 {
-    protected $UID = null;
-    protected $author = null;
-    protected $version = null;
-    protected $moduleType = null;
-    protected $moduleName = null;
-    protected $description = null;
-
-
-    public function getUID()
-    {
-        return $this->UID;
-    }
-
     public function getModuleName()
     {
-        return $this->moduleName;
-    }
-
-    public function setModuleName($name)
-    {
-        $this->moduleName = $name;
+        return isset($this->moduleName) ? $this->moduleName : null;
     }
 
     public function getDescription()
     {
-        return $this->description;
+        return isset($this->description) ? $this->description : null;
     }
 
     public function getVersion()
     {
-        return $this->version;
+        return isset($this->version) ? $this->version : null;
     }
 
     public function getAuthor()
     {
-        return $this->author;
+        return isset($this->author) ? $this->author : null;
     }
 
     public function getModuleType()
     {
-        return $this->moduleType;
+        return isset($this->moduleType) ? $this->moduleType : null;
     }
 
     public static function create(array $options = null)
     {
         $newClass = get_class();
         /**
-         * @var $instance \ZXC\Interfaces\Module
+         * @var $instance \ZXC\Interfaces\IModule
          */
         $instance = new $newClass;
         $instance->initialize($options);

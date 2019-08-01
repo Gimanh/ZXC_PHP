@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: user
- * Date: 27.11.2018
- * Time: 11:23
- */
 
 namespace ZXC\Native\HTTP;
 
@@ -12,24 +6,13 @@ use ZXC\Native\Helper;
 
 class CSRF
 {
-    public static $supported = [
-        'HS256' => 'SHA256',
-        'HS384' => 'SHA384',
-        'HS512' => 'SHA512'
-    ];
-
-    public static function get($msg, $secretKey, $alg = 'HS256')
+    public static function get()
     {
-        if (!self::$supported[$alg]) {
-            throw new \InvalidArgumentException('Algorithm' . $alg . ' not supported');
-        }
-        $alg = self::$supported[$alg];
-        return hash_hmac($alg, $msg, $secretKey, true);
+        return bin2hex(openssl_random_pseudo_bytes(32));
     }
 
-    public static function check($csrf, $msg, $secretKey, $alg = 'HS256')
+    public static function check($token, $tokenFromHeader)
     {
-        $tokenComputed = static::get($msg, $secretKey, $alg);
-        return Helper::hashEquals($csrf, $tokenComputed);
+        return Helper::hashEquals($token, $tokenFromHeader);
     }
 }

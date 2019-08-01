@@ -2,13 +2,21 @@
 
 namespace ZXC\Native;
 
-use ZXC\Interfaces\Module;
+use PDO;
+use Exception;
+use PDOException;
+use ZXC\Traits\Module;
+use ZXC\Interfaces\IModule;
+use InvalidArgumentException;
+use ZXC\Interfaces\Native\IDB;
 
-class DB implements \ZXC\Interfaces\Native\DB, Module
+class DB implements IDB, IModule
 {
-    use \ZXC\Traits\Module;
+    use Module;
+
+    protected $version = '0.0.1';
     /**
-     * @var \PDO
+     * @var PDO
      */
     protected $pdo = null;
     protected $dsn = null;
@@ -21,12 +29,12 @@ class DB implements \ZXC\Interfaces\Native\DB, Module
     protected $port = null;
     protected $errorCode = null;
     protected $errorMessage = null;
-    protected $fetchStyle = \PDO::FETCH_ASSOC;
+    protected $fetchStyle = PDO::FETCH_ASSOC;
 
     public function initialize(array $config = null)
     {
         if (!$this->checkConfig($config)) {
-            throw new \InvalidArgumentException('Invalid config for DB connection');
+            throw new InvalidArgumentException('Invalid config for DB connection');
         }
         $this->setVarsFromConfig($config);
         $this->createPDOInstance();
@@ -36,11 +44,11 @@ class DB implements \ZXC\Interfaces\Native\DB, Module
     public function createPDOInstance()
     {
         try {
-            $this->pdo = new \PDO($this->dsn, $this->user, $this->password);
-        } catch (\PDOException $e) {
+            $this->pdo = new PDO($this->dsn, $this->user, $this->password);
+        } catch (PDOException $e) {
             $this->errorCode = $e->getCode();
             $this->errorMessage = $e->getMessage();
-            throw new \InvalidArgumentException('PDO create error check error code');
+            throw new InvalidArgumentException('PDO create error check error code');
         }
     }
 
@@ -78,6 +86,7 @@ class DB implements \ZXC\Interfaces\Native\DB, Module
             $result = $state->execute($params);
             if (!$result) {
                 $this->rollBack();
+                $this->errorMessage = $state->errorInfo()[2];
                 return false;
             }
             $this->commit();
@@ -85,7 +94,7 @@ class DB implements \ZXC\Interfaces\Native\DB, Module
                 $resultArr = $state->fetchAll($this->fetchStyle);
             }
             return $resultArr;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->rollBack();
             $this->errorMessage = $e->getMessage();
             return false;
@@ -107,9 +116,9 @@ class DB implements \ZXC\Interfaces\Native\DB, Module
         $this->pdo->rollBack();
     }
 
-    public function lastInsertId()
+    public function lastInsertId($seq)
     {
-        return $this->pdo->lastInsertId();
+        return $this->pdo->lastInsertId($seq);
     }
 
     /**
@@ -126,5 +135,13 @@ class DB implements \ZXC\Interfaces\Native\DB, Module
     public function getDbType()
     {
         return $this->dbType;
+    }
+
+    /**
+     * @return null
+     */
+    public function getErrorMessage()
+    {
+        return $this->errorMessage;
     }
 }

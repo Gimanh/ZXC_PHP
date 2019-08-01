@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: nikolaygiman
- * Date: 03/10/2018
- * Time: 18:09
- */
 
 namespace ZXC\Traits;
 

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: user
- * Date: 28.11.2018
- * Time: 13:25
- */
 
 namespace ZXC\Traits;
 
@@ -39,11 +33,11 @@ trait StaticProviderAccess
 
     /**
      * @param $class string|object
-     * @return array|object
+     * @return void
      */
     protected static function getConfigForProvider($class)
     {
-        throw new \RuntimeException('Does not implement getConfigForProvider method');
+        throw new \RuntimeException('Does not implement getConfigForProvider method for class ' . $class);
     }
 
     protected static function getProvider()

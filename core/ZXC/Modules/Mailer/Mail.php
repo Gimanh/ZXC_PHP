@@ -1,20 +1,16 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: nikolaygiman
- * Date: 17/10/2018
- * Time: 19:55
- */
 
 namespace ZXC\Modules\Mailer;
 
 
-use ZXC\Interfaces\Module;
+use ZXC\Interfaces\IModule;
 use ZXC\Modules\Mailer\Tx\Mailer;
 
-class Mail extends Mailer implements Module
+class Mail extends Mailer implements IModule
 {
     use \ZXC\Traits\Module;
+    
+    protected $version = '0.0.1';
     /**
      * Initialize class with config
      * @param array $config
