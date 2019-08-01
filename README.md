@@ -14,6 +14,9 @@ An open source project is:
 * Teamwork on the task.
 * Openness to end users.  
 
+## Wiki  
+[Documentation](https://github.com/Gimanh/ZXC_PHP/wiki)
+
 ## How to use
 
 * Create your index.php with the following contents
@@ -33,69 +36,25 @@ See [example here](https://github.com/Gimanh/ZXC_PHP/tree/examples)
 ## Web server settings  
 See [documentation here](https://github.com/Gimanh/ZXC_PHP/wiki/Web-server-settings)
 
+## LICENSE
+MIT License
 
-#### Configuration  
-Configuration for ZXC_PHP is simple php file which returns array with the following structure
-```php
+Copyright (c) 2019 by Giman Nikolay
 
-return [
-    //All details for config see below
-    'ZXC' => [
-        'Modules' => [
-            'ModuleName' => [
-                'class' => '\Class\With\Full\Namespace\ClassName',
-                'options' => [
-                    //any options for module
-                ]
-            ]
-        ],
-        'Autoload' => [
-            /**
-             * root is ZXC_ROOT (index directories)
-             */
-            '../../' => true,
-            '' => true
-        ],
-        'Router' => [
-           //here is router config
-        ]
-    ]
-];
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-```
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-#### Routing  
-```php
-'ZXC' => [
-    'Router' => [
-        
-    ],
- ]
-]
-```
-
-###Web server settings
-
-####IIS
-1. Activate URL Rewrite  
-2. Create web.config file in your application root directory.
-   ```xml 
-   <?xml version="1.0" encoding="UTF-8"?>
-   <configuration>  
-     <system.webServer>
-       <rewrite>
-         <rules>
-           <rule name="Application" stopProcessing="true">
-             <match url=".*" ignoreCase="false" />
-             <conditions logicalGrouping="MatchAll">
-               <add input="{REQUEST_FILENAME}" matchType="IsFile" ignoreCase="false" negate="true" />
-               <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false" negate="true" />
-             </conditions>
-             <action type="Rewrite" url="index.php" appendQueryString="true" />
-           </rule>
-         </rules>
-       </rewrite>
-     </system.webServer>
-   </configuration>
-    ```
-2. Restart IIS.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
