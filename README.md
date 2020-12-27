@@ -3,6 +3,8 @@
 </p>
 <h2 align="center">ZXC_PHP</h2>  
 
+## About 
+`Why am I doing this? I just like it :)`  
 
 ## Contribute  
 Everyone is welcome to contribute!  

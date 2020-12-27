@@ -182,10 +182,6 @@ class Helper
         return md5(uniqid() . time() . rand(0, 150));
     }
 
-    public static function getResponse($code = 500, array $data = [])
-    {
-        return ['status' => $code, 'data' => $data];
-    }
 
     public static function generateRandomText($minLength, $maxLength, $registry = true, $ignoreSymbols = [])
     {
@@ -208,82 +204,59 @@ class Helper
         return $str;
     }
 
-    public static function keysToLower(array $input)
-    {
-        $result = [];
-        foreach ($input as $key => $value) {
-            $key = strtolower($key);
+//    public static function keysToLower(array $input)
+//    {
+//        $result = [];
+//        foreach ($input as $key => $value) {
+//            $key = strtolower($key);
+//
+//            if (is_array($value)) {
+//                $value = self::keysToLower($value);
+//            }
+//
+//            $result[$key] = $value;
+//        }
+//        return $result;
+//    }
 
-            if (is_array($value)) {
-                $value = self::keysToLower($value);
-            }
+//    /**
+//     * If array has not key and key with "null" value is empty
+//     * @param array $var - where we search keys
+//     * @param array $keys - keys for search
+//     * @return bool return false if var has not key
+//     */
+//    public static function issetKeys(array $var, array $keys)
+//    {
+//        foreach ($keys as $k) {
+//            if (!array_key_exists($k, $var)) {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
 
-            $result[$key] = $value;
-        }
-        return $result;
-    }
-
-    /**
-     * If array has not key and key with "null" value is empty
-     * @param array $var - where we search keys
-     * @param array $keys - keys for search
-     * @return bool return false if var has not key
-     */
-    public static function issetKeys(array $var, array $keys)
-    {
-        foreach ($keys as $k) {
-            if (!array_key_exists($k, $var)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * @param array $var
-     * @param array $keys
-     * @return array|bool ['field'=>['value'=>'value']]
-     */
-    public static function getConvertedArrayForStructureByKeys(array $var, array $keys)
-    {
-        $result = [];
-        foreach ($keys as $k) {
-            if (!array_key_exists($k, $var)) {
-                return false;
-            } else {
-                $result[$k] = ['value' => $var[$k]];
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * @param $className
-     * @method createInstanceOfClass
-     * @return mixed|object
-     * @throws ReflectionException
-     */
-    public static function createInstanceOfClass($className = null)
+    public static function createInstanceOfClass(string $className)
     {
         $args = func_get_args();
-        if (!$className) {
-            throw new InvalidArgumentException('Class name is required');
-        }
 
         if (self::classUsesTrait($className, 'ZXC\Patterns\Singleton')) {
             return call_user_func($className . '::getInstance');
         }
 
         if (count($args) > 1) {
-            $r = new ReflectionClass($className);
-            unset($args[0]);
-            return $r->newInstanceArgs($args);
+            try {
+                $r = new ReflectionClass($className);
+                unset($args[0]);
+                return $r->newInstanceArgs($args);
+            } catch (ReflectionException $e) {
+                return null;
+            }
         } else {
             return new $className;
         }
     }
 
-    public static function classUsesTrait($className, $traitName)
+    public static function classUsesTrait(string $className, string $traitName)
     {
         $traits = class_uses($className, true);
         if ($traits) {
@@ -296,7 +269,7 @@ class Helper
      * @link https://stackoverflow.com/a/2040279
      * @return string
      */
-    public static function uuid()
+    public static function uuid(): string
     {
         return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             // 32 bits for "time_low"
@@ -412,48 +385,48 @@ class Helper
         return $string;
     }
 
-    /**
-     * Returns true if writable flag found in $mode
-     * @param string $mode - stream_get_meta_data($stream)['mode']
-     * @return bool
-     */
-    public static function isWritable($mode)
-    {
-        $writable = ['w', 'w+', 'rw', 'r+', 'x+',
-            'c+', 'wb', 'w+b', 'r+b',
-            'x+b', 'c+b', 'w+t', 'r+t',
-            'x+t', 'c+t', 'a', 'a+'
-        ];
-        return in_array($mode, $writable);
-    }
+//    /**
+//     * Returns true if writable flag found in $mode
+//     * @param string $mode - stream_get_meta_data($stream)['mode']
+//     * @return bool
+//     */
+//    public static function isWritable($mode)
+//    {
+//        $writable = ['w', 'w+', 'rw', 'r+', 'x+',
+//            'c+', 'wb', 'w+b', 'r+b',
+//            'x+b', 'c+b', 'w+t', 'r+t',
+//            'x+t', 'c+t', 'a', 'a+'
+//        ];
+//        return in_array($mode, $writable);
+//    }
 
-    /**
-     * Returns true if readable flag found in $mode
-     * @param string $mode - stream_get_meta_data($stream)['mode']
-     * @return bool
-     */
-    public static function isReadable($mode)
-    {
-        $readable = [
-            'r', 'w+', 'r+', 'x+', 'c+',
-            'rb', 'w+b', 'r+b', 'x+b',
-            'c+b', 'rt', 'w+t', 'r+t',
-            'x+t', 'c+t', 'a+'];
-        return in_array($mode, $readable);
-    }
+//    /**
+//     * Returns true if readable flag found in $mode
+//     * @param string $mode - stream_get_meta_data($stream)['mode']
+//     * @return bool
+//     */
+//    public static function isReadable($mode)
+//    {
+//        $readable = [
+//            'r', 'w+', 'r+', 'x+', 'c+',
+//            'rb', 'w+b', 'r+b', 'x+b',
+//            'c+b', 'rt', 'w+t', 'r+t',
+//            'x+t', 'c+t', 'a+'];
+//        return in_array($mode, $readable);
+//    }
 
-    public static function getPsrServerHeaders()
-    {
-        $psrHeaders = [];
-        $allHeaders = getallheaders();
-        foreach ($allHeaders as $name => $value) {
-            if (!is_array($value)) {
-                $value = [$value];
-            }
-            $psrHeaders[$name] = $value;
-        }
-        return $psrHeaders;
-    }
+//    public static function getPsrServerHeaders()
+//    {
+//        $psrHeaders = [];
+//        $allHeaders = getallheaders();
+//        foreach ($allHeaders as $name => $value) {
+//            if (!is_array($value)) {
+//                $value = [$value];
+//            }
+//            $psrHeaders[$name] = $value;
+//        }
+//        return $psrHeaders;
+//    }
 
     /**
      * @method getIp
@@ -580,13 +553,5 @@ class Helper
             }
         }
         return true;
-    }
-
-    public static function getLogFileName($classObjectOrClassName)
-    {
-        if(is_string($classObjectOrClassName)){
-            return str_replace('\\', '_', $classObjectOrClassName) . '.log';
-        }
-        return str_replace('\\', '_', get_class($classObjectOrClassName)) . '.log';
     }
 }

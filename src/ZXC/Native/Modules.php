@@ -1,98 +1,49 @@
 <?php
 
-
 namespace ZXC\Native;
 
-use ZXC\ZXC;
-use Exception;
-use ReflectionException;
+use RuntimeException;
 use ZXC\Interfaces\IModule;
-use InvalidArgumentException;
 
 class Modules
 {
+    /**
+     * @var ModuleParams[]
+     */
     private static $modulesOptions = [];
+
     private static $modulesInstances = [];
+
     private static $modulesName = [];
 
-    /**
-     * Install modules for using
-     * @param array|null $options = [
-     *      ...
-     *      'Session' => [
-     *          'class' => 'ZXC\Classes\Session',
-     *          'options' => [
-     *              'prefix' => 'zxc_',
-     *              'time' => 6200,
-     *              'path' => '/',
-     *              'domain' => 'zxc.com'
-     *          ]
-     *      ],
-     *      ...
-     * ]
-     * @return bool|mixed
-     * @throws ReflectionException
-     * @throws Exception
-     */
     public static function install(array $options = [])
     {
-        if (!$options) {
-            return false;
+        foreach ($options as $name => $option) {
+            self::$modulesName[strtolower($name)] = $name;
+            self::$modulesOptions[$name] = new ModuleParams(
+                $option['class'] ?? '',
+                $option['options'] ?? [],
+                $option ['defer'] ?? true
+            );
         }
-        self::$modulesOptions = $options;
-        foreach (self::$modulesOptions as $pluginName => $pluginValue) {
-            if (!isset($pluginValue['class']) || !isset($pluginValue['options'])) {
-                throw new InvalidArgumentException('Invalid module parameters for module ' . $pluginName);
-            }
-            self::$modulesName[strtolower($pluginName)] = $pluginName;
-        }
-        foreach (self::$modulesOptions as $pluginName => $pluginValue) {
-            $defer = isset($pluginValue['defer']) ? $pluginValue['defer'] : null;
-            if (!$defer) {
-                self::$modulesInstances[$pluginName] = self::createInstance($pluginValue);
+        foreach (self::$modulesOptions as $moduleName => $modulesOption) {
+            if (!$modulesOption->isDefer()) {
+                self::$modulesInstances[$moduleName] = self::createInstance($modulesOption);
             }
         }
-        return true;
     }
 
-    /**
-     * Uninstall modules
-     * @param array|null $options = [ 'Session'=>true ]
-     * @return bool|mixed
-     */
-    public static function uninstall(array $options = [])
-    {
-        if (!$options) {
-            return false;
-        }
-        foreach ($options as $key => $value) {
-            if ($value) {
-                unset(self::$modulesInstances[$key]);
-                unset(self::$modulesOptions[$key]);
-                unset(self::$modulesName[$key]);
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns instance of registered Module
-     * @param string $moduleName -  'StructureControl'
-     * @return IModule|null
-     * @throws ReflectionException
-     * @throws Exception
-     */
     public static function get(string $moduleName)
     {
         if (!self::has($moduleName)) {
             return null;
         }
-        $originName = self::$modulesName[strtolower($moduleName)];
-        if (!isset(self::$modulesInstances[$originName])) {
-            self::$modulesInstances[$originName] = self::createInstance(self::$modulesOptions[$originName]);
-            return self::$modulesInstances[$originName];
+        $name = self::$modulesName[strtolower($moduleName)];
+        if (!isset(self::$modulesInstances[$name])) {
+            self::$modulesInstances[$name] = self::createInstance(self::$modulesOptions[$name]);
+            return self::$modulesInstances[$name];
         }
-        return self::$modulesInstances[$originName];
+        return self::$modulesInstances[$name];
     }
 
     /**
@@ -106,7 +57,9 @@ class Modules
         if (!self::has($moduleName)) {
             return null;
         }
-        return call_user_func_array([self::$modulesInstances[self::$modulesName[strtolower($moduleName)]], 'create'], [$options]);
+        return call_user_func_array([
+            self::$modulesInstances[self::$modulesName[strtolower($moduleName)]], 'create'
+        ], [$options]);
     }
 
     public static function has($moduleName)
@@ -114,56 +67,20 @@ class Modules
         return isset(self::$modulesName[strtolower($moduleName)]);
     }
 
-    public static function destroy()
+    public static function createInstance(ModuleParams $options)
     {
-        self::$modulesOptions = [];
-        self::$modulesInstances = [];
-        self::$modulesName = [];
-    }
-
-    /**
-     * @param array $options
-     * @method createModuleInstance
-     * @return mixed|null
-     * @throws ReflectionException
-     */
-    public static function createInstance(array $options = [])
-    {
-        if ($options['class']) {
-            $instance = Helper::createInstanceOfClass($options['class']);
-            if (!$instance) {
-                throw new InvalidArgumentException('Module ' . $options['class'] . ' can not create instance');
-            }
-            if (!$instance instanceof IModule) {
-                throw new InvalidArgumentException('Module ' . $options['class'] . ' must implement \'ZXC\Interfaces\Module\'');
-            }
-            $instance->initialize($options['options']);
-            return $instance;
+        $instance = Helper::createInstanceOfClass($options->getClass());
+        if (!$instance instanceof IModule) {
+            throw new RuntimeException('Module ' . $options['class'] . ' must implement \'ZXC\Interfaces\Module\'');
         }
-        return null;
-    }
-
-    /**
-     * @return array
-     */
-    public static function getOptions()
-    {
-        return self::$modulesOptions;
-    }
-
-    /**
-     * @return array
-     */
-    public static function getInstances()
-    {
-        return self::$modulesInstances;
+        $instance->init($options->getOptions());
+        return $instance;
     }
 
     /**
      * @param $className - full class name with namespace
      * @method getModuleByClassName
      * @return mixed
-     * @throws ReflectionException
      */
     public static function getByClassName($className)
     {
@@ -175,11 +92,26 @@ class Modules
         }
 
         foreach (self::$modulesOptions as $name => $option) {
-            if ($option['class'] === $className) {
+            if ($option->getClass() === $className) {
                 return self::get($name);
             }
         }
 
         return false;
+    }
+
+    public static function uninstall(array $options = []): bool
+    {
+        $wasDeleted = false;
+        foreach ($options as $key => $value) {
+            if ($value) {
+                $name = self::$modulesName[strtolower($key)];
+                $wasDeleted = true;
+                unset(self::$modulesInstances[$name]);
+                unset(self::$modulesOptions[$name]);
+                unset(self::$modulesName[strtolower($key)]);
+            }
+        }
+        return $wasDeleted;
     }
 }

@@ -5,6 +5,7 @@ namespace ZXC;
 
 use Exception;
 use ZXC\Native\Config;
+use ZXC\Native\Modules;
 use ZXC\Native\Router;
 use ZXC\Patterns\Singleton;
 use ZXC\Native\PSR\Response;
@@ -33,19 +34,6 @@ class ZXC
 //     */
 //    private $notFoundHandler = null;
 
-
-//    public function initialize(array $config = [])
-//    {
-//
-//        if ($config) {
-//            $modules = Config::get('ZXC/Modules');
-//            if ($modules) {
-//                ModulesManager::installModules(Config::get('ZXC/Modules'));
-//                $this->logger = ModulesManager::getModule('logger');
-//            }
-//        }
-//    }
-
     private function prepareConfig(string $configPath)
     {
         $config = json_decode(file_get_contents($configPath), true);
@@ -56,6 +44,7 @@ class ZXC
 
         $routerConfig = Config::get('router');
         Router::instance()->prepare($routerConfig);
+        Modules::install(Config::get('modules'));
     }
 
     public function go(string $configPath)
@@ -64,24 +53,16 @@ class ZXC
             self::prepareConfig($configPath);
             $routeHandlerResult = Router::instance()->go();
             ZXCResponse::sendResponse($routeHandlerResult);
-        } catch (InvalidArgumentException $e) {
-            ZXCResponse::sendError($this, 500, $e->getMessage());
         } catch (Exception $e) {
             ZXCResponse::sendError($this, 500, $e->getMessage());
         }
     }
 
-    /**
-     * @return ServerRequestInterface
-     */
     public function getRequest(): ServerRequestInterface
     {
         return $this->request;
     }
 
-    /**
-     * @return Response
-     */
     public function getResponse(): Response
     {
         return $this->response;
