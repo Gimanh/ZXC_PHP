@@ -3,19 +3,20 @@
 
 namespace ZXC\Native;
 
-use ZXC\ZXC;
+
 use ReflectionException;
-use ZXC\Patterns\Singleton;
+use RuntimeException;
 use ZXC\Native\PSR\Response;
 use InvalidArgumentException;
 use ZXC\Interfaces\Psr\Http\Message\UriInterface;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
+use ZXC\Interfaces\Psr\Http\Message\ServerRequestInterface;
+use ZXC\Interfaces\Psr\Http\Message\ResponseFactoryInterface;
+use ZXC\Interfaces\Psr\Http\Message\ServerRequestFactoryInterface;
 
 
 class Router
 {
-    use Singleton;
-
     /**
      * Routes from config
      * @var array
@@ -39,26 +40,59 @@ class Router
      */
     protected $notFoundHandler = null;
 
+    /** @var ServerRequestInterface */
+    protected $serverRequest = null;
+
+    /** @var ResponseInterface */
+    protected $response = null;
+
+    /** @var array */
+    protected $appMiddlewares = [];
+
+    public function __construct(
+        ServerRequestFactoryInterface $serverRequestFactory,
+        ResponseFactoryInterface $responseFactory,
+        array $routeConfig
+    )
+    {
+        $this->serverRequest = $serverRequestFactory->createServerRequest('', '');
+        $this->response = $responseFactory->createResponse();
+        $this->prepare($routeConfig);
+    }
+
     public function prepare(array $config = [])
     {
         if (!isset($config['routes'])) {
             throw new InvalidArgumentException('Undefined routes in Router config');
         }
 
+        $this->appMiddlewares = $config['useAppMiddlewares'] ?? [];
+
         $this->middlewares = $config['middlewares'] ?? [];
 
         $this->preflight = $config['preflight'] ?? null;
 
         $notFound = function () {
-            return ZXC::response()->withStatus(404);
+            return $this->response->withStatus(404);
         };
         $this->notFoundHandler = $config['notFoundHandler'] ?? $notFound;
+
+        $this->checkAppMiddlewares();
 
         foreach ($config['routes'] as $routeParams) {
             $this->initRoute($routeParams);
         }
 
         return true;
+    }
+
+    public function checkAppMiddlewares()
+    {
+        foreach ($this->appMiddlewares as $key => $value) {
+            if (!isset($this->middlewares[$key])) {
+                throw new RuntimeException('App middleware "' . $key . '" must be registered in "middlewares"');
+            }
+        }
     }
 
     /**
@@ -76,7 +110,7 @@ class Router
 
     public function initRoute($routeParams)
     {
-        $routeInstance = new Route($routeParams);
+        $routeInstance = new Route($this, $routeParams);
         $this->registerRouteInstance($routeInstance);
         $children = $routeInstance->getChildren();
         if ($children) {
@@ -97,15 +131,17 @@ class Router
      */
     public function getUriRoute()
     {
-        $path = $this->getNormalizedPath(ZXC::request()->getUri());
-        $method = ZXC::request()->getMethod();
+        $path = $this->getNormalizedPath(
+            $this->serverRequest->getUri()
+        );
+        $method = $this->serverRequest->getMethod();
         if (!isset($this->routes[$method])) {
             throw new InvalidArgumentException('Invalid requestMethod ' . $method . ' set ' . $method . '=>true in config file');
         }
         /**@var $route Route */
         foreach ($this->routes[$method] as $route) {
             $isValidRouteParams = $route->isThisYourPath($path);
-            if($isValidRouteParams !== false){
+            if ($isValidRouteParams !== false) {
                 $route->setRouteURIParams($isValidRouteParams ?? []);
                 return $route;
             }
@@ -140,8 +176,7 @@ class Router
      */
     public function go()
     {
-        $serverRequest = ZXC::request();
-        $method = $serverRequest->getMethod();
+        $method = $this->serverRequest->getMethod();
         if ($method === 'OPTIONS') {
             return $this->callPreflight();
         }
@@ -153,7 +188,7 @@ class Router
         if ($routeHandler instanceof ResponseInterface) {
             return $routeHandler;
         } else {
-            return ZXC::response()->write((string)$routeHandler);
+            return $this->response->write((string)$routeHandler);
         }
     }
 
@@ -167,11 +202,11 @@ class Router
         if ($this->notFoundHandler) {
             return Helper::callCallback(
                 $this->notFoundHandler,
-                ZXC::request(),
-                ZXC::response()
+                $this->serverRequest,
+                $this->response
             );
         } else {
-            return ZXC::response()->withStatus(404);
+            return $this->response->withStatus(404);
         }
     }
 
@@ -179,12 +214,53 @@ class Router
      * @return ResponseInterface|Response
      * @throws ReflectionException
      * @method callPreflight
+     * @deprecated
      */
     public function callPreflight()
     {
         if ($this->preflight) {
-            return Helper::callCallback($this->preflight, ZXC::request(), ZXC::response());
+            return Helper::callCallback($this->preflight, $this->serverRequest, $this->response);
         }
-        return ZXC::response()->withStatus(400);
+        return $this->response->withStatus(400);
+    }
+
+    /**
+     * @return ServerRequestInterface
+     */
+    public function getServerRequest(): ServerRequestInterface
+    {
+        return $this->serverRequest;
+    }
+
+    /**
+     * @return ResponseInterface
+     */
+    public function getResponse(): ResponseInterface
+    {
+        return $this->response;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAppMiddlewares(): array
+    {
+        return $this->appMiddlewares;
+    }
+
+    public function getAppMiddlewareAliases()
+    {
+        return array_keys($this->appMiddlewares);
+    }
+
+    public function getAppMiddlewareHandlers()
+    {
+        $result = [];
+        foreach ($this->appMiddlewares as $key => $value) {
+            if ($value === true) {
+                $result[] = $this->getMiddlewareHandler($key);
+            }
+        }
+        return $result;
     }
 }

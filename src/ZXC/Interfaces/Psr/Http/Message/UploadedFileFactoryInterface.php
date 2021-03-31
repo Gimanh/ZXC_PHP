@@ -5,8 +5,6 @@ namespace ZXC\Interfaces\Psr\Http\Message;
 
 
 use InvalidArgumentException;
-use ZXC\Interfaces\Psr\Http\Message\StreamInterface;
-use ZXC\Interfaces\Psr\Http\Message\UploadedFileInterface;
 
 
 interface UploadedFileFactoryInterface

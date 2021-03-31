@@ -238,11 +238,6 @@ class Helper
     public static function createInstanceOfClass(string $className)
     {
         $args = func_get_args();
-
-        if (self::classUsesTrait($className, 'ZXC\Patterns\Singleton')) {
-            return call_user_func($className . '::getInstance');
-        }
-
         if (count($args) > 1) {
             try {
                 $r = new ReflectionClass($className);
@@ -256,14 +251,14 @@ class Helper
         }
     }
 
-    public static function classUsesTrait(string $className, string $traitName)
-    {
-        $traits = class_uses($className, true);
-        if ($traits) {
-            return in_array($traitName, $traits, true);
-        }
-        return false;
-    }
+//    public static function classUsesTrait(string $className, string $traitName)
+//    {
+//        $traits = class_uses($className, true);
+//        if ($traits) {
+//            return in_array($traitName, $traits, true);
+//        }
+//        return false;
+//    }
 
     /**
      * @link https://stackoverflow.com/a/2040279

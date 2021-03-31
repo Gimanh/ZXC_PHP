@@ -3,17 +3,21 @@
 
 namespace ZXC\Native\PSR;
 
+
 use InvalidArgumentException;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 use ZXC\Interfaces\Psr\Http\Message\StreamInterface;
 
+
 class Response extends Message implements ResponseInterface
 {
-    /**
-     * @var integer
-     */
+    /** @var int */
     protected $statusCode;
+
+    /** @var string */
     protected $reasonPhrase;
+
+    /** @var string[] */
     private static $phrases = [
         100 => 'Continue',
         101 => 'Switching Protocols',
@@ -83,7 +87,13 @@ class Response extends Message implements ResponseInterface
      * @param string $version
      * @param string $reasonPhrase
      */
-    public function __construct($statusCode = 200, $headers = [], $body = 'php://memory', $version = '1.1', $reasonPhrase = '')
+    public function __construct(
+        int $statusCode = 200,
+        array $headers = [],
+        $body = 'php://memory',
+        string $version = '1.1',
+        string $reasonPhrase = ''
+    )
     {
         if (!isset(self::$validProtocolVersions[$version])) {
             throw new InvalidArgumentException('Invalid HTTP version');
@@ -93,7 +103,7 @@ class Response extends Message implements ResponseInterface
         $this->statusCode = $statusCode;
         $this->reasonPhrase = $reasonPhrase;
 
-        if ($reasonPhrase == '' && isset(self::$phrases[$this->statusCode])) {
+        if ($reasonPhrase === '' && isset(self::$phrases[$this->statusCode])) {
             $this->reasonPhrase = self::$phrases[$this->statusCode];
         }
 

@@ -3,15 +3,14 @@
 
 namespace ZXC\Native;
 
-use ZXC\ZXC;
-use ReflectionException;
-use ZXC\Interfaces\IModule;
+
 use InvalidArgumentException;
-use ZXC\Interfaces\Psr\Http\Message\RequestInterface;
+use RuntimeException;
+use ZXC\Interfaces\Psr\Server\RequestHandlerInterface;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 use ZXC\Interfaces\Psr\Http\Message\ServerRequestInterface;
 
-class Route
+class Route implements RequestHandlerInterface
 {
     /**
      * @var string
@@ -21,17 +20,7 @@ class Route
     /**
      * @var string
      */
-    private $class;
-
-    /**
-     * @var string
-     */
     private $routePath;
-
-    /**
-     * @var string
-     */
-    private $classMethod;
 
     /**
      * @var string
@@ -42,32 +31,41 @@ class Route
 
     private $children;
 
-    private $middleware = [];
+    private $middlewares = [];
 
-    private $middlewareStack;
+    /** @var Router */
+    protected $router = null;
 
-    public function __construct(array $routeParams)
+    /** @var string */
+    private $handlerString = '';
+
+    /** @var ServerRequestInterface */
+    protected $serverRequest = null;
+
+    public function __construct(Router $router, array $routeParams)
     {
+        $this->router = $router;
+        $this->serverRequest = $this->router->getServerRequest();
         $this->parseRouteParams($routeParams);
     }
 
     public function parseRouteParams(array $routeParams)
     {
         $parsedParams = $this->cleanRoutePath($routeParams);
-        $classAndMethod = $this->parseRouteClassString($parsedParams['handler']);
-        if (isset($routeParams['middleware'])) {
-            if (is_array($routeParams['middleware'])) {
-                foreach ($routeParams['middleware'] as $name) {
-                    $this->middleware[] = Router::instance()->getMiddlewareHandler($name) ?? $name;
+        if (isset($routeParams['middlewares'])) {
+            if (is_array($routeParams['middlewares'])) {
+                foreach ($routeParams['middlewares'] as $name) {
+                    $this->middlewares[] = $this->router->getMiddlewareHandler($name) ?? $name;
                 }
             }
         }
+
+        $this->middlewares = $this->router->getAppMiddlewareHandlers() + $this->middlewares;
+
         $this->regex = $this->createRegex($parsedParams['route']);
         $this->requestMethod = $parsedParams['method'];
         $this->routePath = $parsedParams['route'];
-        $this->class = $classAndMethod['class'];
-        $this->classMethod = $classAndMethod['method'];
-
+        $this->handlerString = $parsedParams['handler'];
         if (isset($routeParams['children'])) {
             $this->children = $this->prepareChildren($routeParams['children']);
         }
@@ -102,21 +100,6 @@ class Route
     {
         $routeParams['route'] = preg_replace('!\s+!', '', $routeParams['route']);
         return $routeParams;
-    }
-
-    public function parseRouteClassString(string $classString)
-    {
-        $classAndMethod = explode(':', $classString);
-        if (!$classAndMethod || count($classAndMethod) !== 2) {
-            return [
-                'class' => null,
-                'method' => null
-            ];
-        }
-        return [
-            'class' => $classAndMethod[0],
-            'method' => $classAndMethod[1]
-        ];
     }
 
     /**
@@ -189,96 +172,50 @@ class Route
         $this->routeURIParams = $routeURIParams;
     }
 
-    /**
-     * Execute route
-     * @return ResponseInterface
-     * @throws ReflectionException
-     */
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->callCallback(
+            $this->handlerString,
+            $request,
+            $this->router->getResponse(),
+            new RouteParams($this->routeURIParams)
+        );
+    }
+
     public function executeRoute()
     {
-        $ZXC = ZXC::instance();
-        $request = $ZXC->getRequest();
-        $response = $ZXC->getResponse();
-
-        $mainHandlerParams = new RouteParams($this->routeURIParams);
-
-        $mainHandler = function (RequestInterface $requestI, ResponseInterface $responseI) use ($mainHandlerParams) {
-            if ($this->class && class_exists($this->class)) {
-                $userClass = $this->createInstanceOfClass($this->class);
-                if (method_exists($userClass, $this->classMethod)) {
-                    return call_user_func_array(
-                        [$userClass, $this->classMethod],
-                        [$requestI, $responseI, $mainHandlerParams]
-                    );
-                } else {
-                    throw new InvalidArgumentException('Method ' . $this->classMethod . ' not exist in class ' . get_class($userClass));
-                }
-            } else {
-                throw new InvalidArgumentException('Main handler or method is not defined for the route');
+        if ($this->middlewares) {
+            $handlersStack = new Handler($this);
+            $count = count($this->middlewares) - 1;
+            for ($i = $count; $i >= 0; $i--) {
+                $handlersStack = new Handler($this->wrapMiddleware($this->middlewares[$i]), $handlersStack, $this->middlewares[$i]);
             }
-        };
-        if ($this->middleware) {
-            $middlewareCount = count($this->middleware);
-            for ($i = $middlewareCount - 1; $i >= 0; $i--) {
-                $name = $this->middleware[$i];
-                if (!$this->middlewareStack) {
-                    $this->middlewareStack = function (ServerRequestInterface $request, ResponseInterface $response) use ($mainHandler) {
-                        return $mainHandler($request, $response);
-                    };
-                }
-                $next = $this->middlewareStack;
-                $this->middlewareStack = function (ServerRequestInterface $request, ResponseInterface $response) use ($name, $next) {
-                    return Helper::callCallback($name, $request, $response, $next);
-                };
-            }
-            $firstMiddleware = $this->middlewareStack;
-            return $firstMiddleware($request, $response);
+            return $handlersStack->handle($this->serverRequest);
         } else {
-            return $mainHandler($request, $response);
+            return $this->handle($this->router->getServerRequest());
         }
     }
 
-    /**
-     * @param $className
-     * @method createInstanceOfClass
-     * @return mixed|IModule|null
-     * @throws ReflectionException
-     */
-    public function createInstanceOfClass($className)
+    public function wrapMiddleware($name): callable
     {
-        if (!$className) {
-            throw new InvalidArgumentException();
-        }
-        if ($this->classUsesTrait($className, 'ZXC\Patterns\Singleton')) {
-            return call_user_func($className . '::getInstance');
-        }
-        if (is_subclass_of($className, 'ZXC\Interfaces\IModule')) {
-            return Modules::getByClassName($className);
-        }
-        return new $className;
+        return function (ServerRequestInterface $request, RequestHandlerInterface $handler) use ($name) {
+            return $this->callCallback($name, $request, $handler);
+        };
     }
 
-    public function classUsesTrait($className, $traitName)
+    public function callCallback($callback)
     {
-        $traits = class_uses($className, true);
-        if ($traits) {
-            return in_array($traitName, $traits, true);
-        }
-        return false;
+        $args = func_get_args();
+        unset($args[0]);
+        $rh = new RouteHandler($callback, $args);
+        return $rh->call();
     }
 
-    /**
-     * @return mixed
-     */
     public function getChildren()
     {
         return $this->children;
     }
 
-    /**
-     * @param string $path
-     * @return array|false
-     */
     public function isThisYourPath(string $path)
     {
         if (preg_match($this->getRegex(), $path, $matches)) {

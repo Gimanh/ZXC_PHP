@@ -50,7 +50,6 @@ class ZXCResponse
     public static function sendError(ZXC $ZXC, $code, $msg)
     {
         http_response_code($code);
-        $ZXC->writeLog($msg . ' ' . uniqid());
     }
 
     /**

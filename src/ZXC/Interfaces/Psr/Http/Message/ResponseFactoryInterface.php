@@ -4,9 +4,6 @@
 namespace ZXC\Interfaces\Psr\Http\Message;
 
 
-use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
-
-
 interface ResponseFactoryInterface
 {
     /**

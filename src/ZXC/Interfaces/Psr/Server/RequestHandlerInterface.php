@@ -1,6 +1,8 @@
 <?php
 
-namespace ZXC\Interfaces\Psr\Http\Server;
+
+namespace ZXC\Interfaces\Psr\Server;
+
 
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 use ZXC\Interfaces\Psr\Http\Message\ServerRequestInterface;

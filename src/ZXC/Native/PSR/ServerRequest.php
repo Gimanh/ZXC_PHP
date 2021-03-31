@@ -3,9 +3,9 @@
 namespace ZXC\Native\PSR;
 
 
-
 use ZXC\Interfaces\Psr\Http\Message\ServerRequestInterface;
 use ZXC\Interfaces\Psr\Http\Message\UploadedFileInterface;
+use ZXC\Interfaces\Psr\Http\Message\UriInterface;
 use ZXC\Native\Helper;
 
 class ServerRequest extends Request implements ServerRequestInterface
@@ -37,29 +37,45 @@ class ServerRequest extends Request implements ServerRequestInterface
 
     /**
      * ServerRequest constructor.
+     * @param string $method
+     * @param string|UriInterface $uri
      * @param array $server
      * @param array $cookieParams
      * @param array $uploadedFiles
+     * @param array $get
+     * @param array $post
      */
-    public function __construct($server = [], $cookieParams = [], $uploadedFiles = [])
+    public function __construct(
+        string $method,
+        $uri,
+        $server = [],
+        $cookieParams = [],
+        $uploadedFiles = [],
+        $get = [],
+        $post = []
+    )
     {
         $this->serverParams = $server;
         $this->cookieParams = $cookieParams;
         //FIXME must be UploadedFileInterface[]
         $this->uploadedFiles = $uploadedFiles;
-        if (isset($_GET)) {
+        if ($get) {
             $this->queryParams = $_GET;
         } else {
             if (isset($server['QUERY_STRING'])) {
                 parse_str($server['QUERY_STRING'], $this->queryParams);
             }
-        };
-
-        if (isset($_POST)) {
-            $this->parsedBody = $_POST;
         }
-        $uri = $this->getUriString();
-        $method = isset($server['REQUEST_METHOD']) ? $server['REQUEST_METHOD'] : '';
+
+        if ($post) {
+            $this->parsedBody = $post;
+        }
+        if (!$uri) {
+            $uri = $this->getUriString();
+        }
+        if (!$method) {
+            $method = $server['REQUEST_METHOD'];
+        }
         $headers = $this->getPsrServerHeaders();
         $body = 'php://memory';
         parent::__construct($uri, $method, $headers, $body);
