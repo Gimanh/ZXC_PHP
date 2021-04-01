@@ -29,11 +29,11 @@ class ZXC
     {
         $config = json_decode(file_get_contents($configPath), true);
         Config::init($config);
-        //TODO move Factory to config file
-        $serverRequestFactory = new ServerRequestFactory();
-        $responseFactory = new ResponseFactory();
-        $routerConfig = Config::get('router');
-        $this->router = new Router($serverRequestFactory, $responseFactory, $routerConfig);
+        $this->router = new Router(
+            new ServerRequestFactory(),
+            new ResponseFactory(),
+            Config::get('router')
+        );
         Modules::install(Config::get('modules'));
     }
 

@@ -176,10 +176,6 @@ class Router
      */
     public function go()
     {
-        $method = $this->serverRequest->getMethod();
-        if ($method === 'OPTIONS') {
-            return $this->callPreflight();
-        }
         $routeParams = $this->getUriRoute();
         if (!$routeParams) {
             return $this->callNotFound();
