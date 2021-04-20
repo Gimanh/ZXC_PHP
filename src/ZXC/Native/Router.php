@@ -4,9 +4,7 @@
 namespace ZXC\Native;
 
 
-use ReflectionException;
 use RuntimeException;
-use ZXC\Native\PSR\Response;
 use InvalidArgumentException;
 use ZXC\Interfaces\Psr\Http\Message\UriInterface;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
@@ -60,7 +58,7 @@ class Router
         $this->prepare($routeConfig);
     }
 
-    public function prepare(array $config = [])
+    public function prepare(array $config = []): bool
     {
         if (!isset($config['routes'])) {
             throw new InvalidArgumentException('Undefined routes in Router config');
@@ -83,7 +81,7 @@ class Router
         return true;
     }
 
-    public function checkAppMiddlewares()
+    public function checkAppMiddlewares(): void
     {
         foreach ($this->appMiddlewares as $key => $value) {
             if (!isset($this->middlewares[$key])) {
@@ -105,7 +103,7 @@ class Router
         return null;
     }
 
-    public function initRoute($routeParams)
+    public function initRoute($routeParams): bool
     {
         $routeInstance = new Route($this, $routeParams);
         $this->registerRouteInstance($routeInstance);
@@ -117,10 +115,9 @@ class Router
         return true;
     }
 
-    private function registerRouteInstance(Route $parsedRoute)
+    private function registerRouteInstance(Route $parsedRoute): void
     {
         $this->routes[$parsedRoute->getMethod()][$parsedRoute->getRoutePath()] = $parsedRoute;
-        return $parsedRoute;
     }
 
     /**
@@ -133,7 +130,11 @@ class Router
         );
         $method = $this->serverRequest->getMethod();
         if (!isset($this->routes[$method])) {
-            throw new InvalidArgumentException('Invalid requestMethod ' . $method . ' set ' . $method . '=>true in config file');
+            throw new InvalidArgumentException(
+                'Invalid request method "'
+                . $method . '" set "'
+                . $method . '"=>true in config file'
+            );
         }
         /**@var $route Route */
         foreach ($this->routes[$method] as $route) {
@@ -146,7 +147,7 @@ class Router
         return false;
     }
 
-    public function getNormalizedPath(UriInterface $uri)
+    public function getNormalizedPath(UriInterface $uri): string
     {
         $path = $uri->getPath();
         $baseRoute = dirname($_SERVER['SCRIPT_NAME']);
@@ -167,11 +168,7 @@ class Router
         return $path;
     }
 
-    /**
-     * @return mixed|ResponseInterface|Response
-     * @throws ReflectionException
-     */
-    public function go()
+    public function go(): ResponseInterface
     {
         $routeParams = $this->getUriRoute();
         if (!$routeParams) {
@@ -185,32 +182,13 @@ class Router
         }
     }
 
-    /**
-     * @return mixed
-     * @throws ReflectionException
-     * @method callNotFound
-     */
-    private function callNotFound()
+    private function callNotFound(): ResponseInterface
     {
         if ($this->notFoundHandler) {
             return (new RouteHandler($this->notFoundHandler, [$this->serverRequest]))->call();
         } else {
             return $this->response->withStatus(404);
         }
-    }
-
-    /**
-     * @return ResponseInterface|Response
-     * @throws ReflectionException
-     * @method callPreflight
-     * @deprecated
-     */
-    public function callPreflight()
-    {
-        if ($this->preflight) {
-            return Helper::callCallback($this->preflight, $this->serverRequest, $this->response);
-        }
-        return $this->response->withStatus(400);
     }
 
     /**
@@ -237,12 +215,12 @@ class Router
         return $this->appMiddlewares;
     }
 
-    public function getAppMiddlewareAliases()
+    public function getAppMiddlewareAliases(): array
     {
         return array_keys($this->appMiddlewares);
     }
 
-    public function getAppMiddlewareHandlers()
+    public function getAppMiddlewareHandlers(): array
     {
         $result = [];
         foreach ($this->appMiddlewares as $key => $value) {

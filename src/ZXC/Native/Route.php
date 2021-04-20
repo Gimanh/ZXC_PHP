@@ -27,7 +27,7 @@ class Route implements RequestHandlerInterface
      */
     private $requestMethod;
 
-    private $routeURIParams;
+    private $routeURIParams = [];
 
     private $children;
 
@@ -49,7 +49,7 @@ class Route implements RequestHandlerInterface
         $this->parseRouteParams($routeParams);
     }
 
-    public function parseRouteParams(array $routeParams)
+    public function parseRouteParams(array $routeParams = []): void
     {
         $parsedParams = $this->cleanRoutePath($routeParams);
         if (isset($routeParams['middlewares'])) {
@@ -96,7 +96,7 @@ class Route implements RequestHandlerInterface
         return $parsedRoute;
     }
 
-    public function cleanRoutePath(array $routeParams)
+    public function cleanRoutePath(array $routeParams): array
     {
         $routeParams['route'] = preg_replace('!\s+!', '', $routeParams['route']);
         return $routeParams;
