@@ -39,6 +39,11 @@ class RouteHandler
      */
     const INVOKE_HANDLER = 4;
 
+    /**
+     *
+     */
+    const CALLABLE_HANDLER = 5;
+
     /**  @var string */
     protected $handler = '';
 
@@ -53,7 +58,12 @@ class RouteHandler
 
     protected $handlerType;
 
-    public function __construct(string $handler, array $args)
+    /**
+     * RouteHandler constructor.
+     * @param string | callable $handler
+     * @param array $args
+     */
+    public function __construct($handler, array $args = [])
     {
         $this->handler = $handler;
         $this->args = $args;
@@ -62,8 +72,12 @@ class RouteHandler
 
     public function detectHandlerType()
     {
-        $data = explode(':', $this->handler);
-        $this->class = $data[0];
+        $data = [];
+
+        if (is_string($this->handler)) {
+            $data = explode(':', $this->handler);
+            $this->class = $data[0];
+        }
 
         if (count($data) === 2) {
             $this->method = $data[1];
@@ -84,6 +98,11 @@ class RouteHandler
             $this->method = '__invoke';
             return self::INVOKE_HANDLER;
         }
+
+        if (is_callable($this->handler)) {
+            return self::CALLABLE_HANDLER;
+        }
+
         return self::UNKNOWN_HANDLER;
     }
 
@@ -92,8 +111,10 @@ class RouteHandler
         if ($this->handlerType === self::UNKNOWN_HANDLER) {
             throw new InvalidArgumentException('Unknown handler type');
         }
-        $instance = new $this->class;
-        return call_user_func_array([$instance, $this->method], $this->args);
+        if ($this->handlerType === self::CALLABLE_HANDLER) {
+            return call_user_func_array($this->handler, $this->args);
+        }
+        return call_user_func_array([new $this->class, $this->method], $this->args);
 
     }
 }

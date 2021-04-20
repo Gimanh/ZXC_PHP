@@ -207,8 +207,7 @@ class Route implements RequestHandlerInterface
     {
         $args = func_get_args();
         unset($args[0]);
-        $rh = new RouteHandler($callback, $args);
-        return $rh->call();
+        return (new RouteHandler($callback, $args))->call();
     }
 
     public function getChildren()

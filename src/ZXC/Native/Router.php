@@ -72,10 +72,7 @@ class Router
 
         $this->preflight = $config['preflight'] ?? null;
 
-        $notFound = function () {
-            return $this->response->withStatus(404);
-        };
-        $this->notFoundHandler = $config['notFoundHandler'] ?? $notFound;
+        $this->notFoundHandler = $config['notFoundHandler'] ?? 'ZXC\Native\NotFound:notFound';
 
         $this->checkAppMiddlewares();
 
@@ -196,11 +193,7 @@ class Router
     private function callNotFound()
     {
         if ($this->notFoundHandler) {
-            return Helper::callCallback(
-                $this->notFoundHandler,
-                $this->serverRequest,
-                $this->response
-            );
+            return (new RouteHandler($this->notFoundHandler, [$this->serverRequest]))->call();
         } else {
             return $this->response->withStatus(404);
         }
