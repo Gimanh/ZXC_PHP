@@ -7,6 +7,7 @@ namespace ZXC\Native\PSR;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 use ZXC\Interfaces\Psr\Http\Message\ResponseFactoryInterface;
 
+
 class ResponseFactory implements ResponseFactoryInterface
 {
 

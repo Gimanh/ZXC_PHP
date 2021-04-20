@@ -1,9 +1,12 @@
 <?php
 
+
 namespace ZXC\Native\PSR;
+
 
 use InvalidArgumentException;
 use ZXC\Interfaces\Psr\Http\Message\UriInterface;
+
 
 class Uri implements UriInterface
 {

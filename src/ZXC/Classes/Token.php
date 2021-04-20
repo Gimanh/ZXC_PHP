@@ -1,11 +1,14 @@
 <?php
 
+
 namespace ZXC\Classes;
+
 
 use DateTime;
 use Exception;
 use ZXC\Native\Helper;
 use InvalidArgumentException;
+
 
 /**
  * Class Token

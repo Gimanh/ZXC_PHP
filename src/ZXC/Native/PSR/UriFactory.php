@@ -4,8 +4,9 @@
 namespace ZXC\Native\PSR;
 
 
-use ZXC\Interfaces\Psr\Http\Message\UriFactoryInterface;
 use ZXC\Interfaces\Psr\Http\Message\UriInterface;
+use ZXC\Interfaces\Psr\Http\Message\UriFactoryInterface;
+
 
 class UriFactory implements UriFactoryInterface
 {

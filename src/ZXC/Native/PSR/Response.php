@@ -5,8 +5,8 @@ namespace ZXC\Native\PSR;
 
 
 use InvalidArgumentException;
-use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 use ZXC\Interfaces\Psr\Http\Message\StreamInterface;
+use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 
 
 class Response extends Message implements ResponseInterface

@@ -3,10 +3,10 @@
 namespace ZXC\Native\PSR;
 
 
-use ZXC\Interfaces\Psr\Http\Message\ServerRequestInterface;
-use ZXC\Interfaces\Psr\Http\Message\UploadedFileInterface;
 use ZXC\Interfaces\Psr\Http\Message\UriInterface;
-use ZXC\Native\Helper;
+use ZXC\Interfaces\Psr\Http\Message\UploadedFileInterface;
+use ZXC\Interfaces\Psr\Http\Message\ServerRequestInterface;
+
 
 class ServerRequest extends Request implements ServerRequestInterface
 {

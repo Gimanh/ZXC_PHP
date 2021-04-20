@@ -3,15 +3,15 @@
 
 namespace ZXC\Native;
 
-use DirectoryIterator;
+
 use ReflectionClass;
+use DirectoryIterator;
 use ReflectionException;
-use ZXC\Patterns\Singleton;
 use InvalidArgumentException;
+
 
 class Helper
 {
-    use Singleton;
 
     public static $alphabet = [
         'a',

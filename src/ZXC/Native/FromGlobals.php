@@ -4,8 +4,9 @@
 namespace ZXC\Native;
 
 
-use ZXC\Interfaces\Psr\Http\Message\UriInterface;
 use ZXC\Native\PSR\UriFactory;
+use ZXC\Interfaces\Psr\Http\Message\UriInterface;
+
 
 class FromGlobals
 {

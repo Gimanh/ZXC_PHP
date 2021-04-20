@@ -6,6 +6,7 @@ namespace ZXC\Native;
 
 use RuntimeException;
 
+
 class ModuleParams
 {
     private $defer;

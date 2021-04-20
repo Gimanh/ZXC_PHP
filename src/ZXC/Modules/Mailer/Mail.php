@@ -9,6 +9,7 @@ use ZXC\Interfaces\IModule;
 use InvalidArgumentException;
 use ZXC\Modules\Mailer\Tx\Mailer;
 
+
 class Mail extends Mailer implements IModule
 {
     use Module;

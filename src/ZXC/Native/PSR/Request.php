@@ -1,11 +1,12 @@
 <?php
 
+
 namespace ZXC\Native\PSR;
 
 
-
-use ZXC\Interfaces\Psr\Http\Message\RequestInterface;
 use ZXC\Interfaces\Psr\Http\Message\UriInterface;
+use ZXC\Interfaces\Psr\Http\Message\RequestInterface;
+
 
 /**
  * Class Request

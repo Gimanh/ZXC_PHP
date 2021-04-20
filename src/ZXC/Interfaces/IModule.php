@@ -3,6 +3,7 @@
 
 namespace ZXC\Interfaces;
 
+
 interface IModule
 {
     public static function create(array $options = []);

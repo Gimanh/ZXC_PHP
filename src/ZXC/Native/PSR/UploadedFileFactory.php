@@ -5,9 +5,10 @@ namespace ZXC\Native\PSR;
 
 
 use ZXC\Interfaces\Psr\Http\Message\StreamInterface;
-use ZXC\Interfaces\Psr\Http\Message\UploadedFileFactoryInterface;
 use ZXC\Interfaces\Psr\Http\Message\UploadedFileInterface;
+use ZXC\Interfaces\Psr\Http\Message\UploadedFileFactoryInterface;
 use const UPLOAD_ERR_OK;
+
 
 class UploadedFileFactory implements UploadedFileFactoryInterface
 {

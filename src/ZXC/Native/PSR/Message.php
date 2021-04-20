@@ -1,6 +1,8 @@
 <?php
 
+
 namespace ZXC\Native\PSR;
+
 
 use InvalidArgumentException;
 use ZXC\Interfaces\Psr\Http\Message\MessageInterface;

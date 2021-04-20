@@ -5,14 +5,13 @@ namespace ZXC;
 
 
 use Exception;
-use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 use ZXC\Native\Config;
-use ZXC\Native\PSR\Response;
 use ZXC\Native\Router;
 use ZXC\Native\Modules;
-use ZXC\Native\HTTP\ZXCResponse;
+use ZXC\Native\PSR\Response;
 use ZXC\Native\PSR\ResponseFactory;
 use ZXC\Native\PSR\ServerRequestFactory;
+use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 
 
 class ZXC

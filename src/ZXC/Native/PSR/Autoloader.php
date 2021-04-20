@@ -1,6 +1,8 @@
 <?php
 
+
 namespace ZXC\Native\PSR;
+
 
 class Autoloader
 {

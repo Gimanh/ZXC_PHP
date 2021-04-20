@@ -1,7 +1,11 @@
 <?php
 
+
 namespace ZXC\Native;
+
+
 use InvalidArgumentException;
+
 
 /**
  * @method static void emergency($message, array $context = array());
@@ -21,7 +25,6 @@ class Log
      * @param $method
      * @param $args
      * @method __callStatic
-     * @throws \ReflectionException
      */
     public static function __callStatic($method, $args)
     {

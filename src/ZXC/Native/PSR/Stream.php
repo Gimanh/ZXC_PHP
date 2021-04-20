@@ -1,11 +1,14 @@
 <?php
 
+
 namespace ZXC\Native\PSR;
 
+
 use Exception;
-use InvalidArgumentException;
 use RuntimeException;
+use InvalidArgumentException;
 use ZXC\Interfaces\Psr\Http\Message\StreamInterface;
+
 
 class Stream implements StreamInterface
 {

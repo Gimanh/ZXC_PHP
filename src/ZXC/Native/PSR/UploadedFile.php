@@ -1,11 +1,14 @@
 <?php
 
+
 namespace ZXC\Native\PSR;
 
-use InvalidArgumentException;
+
 use RuntimeException;
+use InvalidArgumentException;
 use ZXC\Interfaces\Psr\Http\Message\StreamInterface;
 use ZXC\Interfaces\Psr\Http\Message\UploadedFileInterface;
+
 
 class UploadedFile implements UploadedFileInterface
 {

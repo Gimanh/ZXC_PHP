@@ -1,9 +1,12 @@
 <?php
 
+
 namespace ZXC\Native;
+
 
 use RuntimeException;
 use ZXC\Interfaces\IModule;
+
 
 class Modules
 {

@@ -1,6 +1,8 @@
 <?php
 
+
 namespace ZXC\Modules\Logger;
+
 
 use DateTime;
 use ZXC\Native\Helper;
@@ -9,6 +11,7 @@ use ZXC\Interfaces\IModule;
 use ZXC\Interfaces\Psr\Log\LogLevel;
 use ZXC\Interfaces\Psr\Log\AbstractLogger;
 use ZXC\Interfaces\Psr\Log\LoggerInterface;
+
 
 class Logger extends AbstractLogger implements LoggerInterface, IModule
 {

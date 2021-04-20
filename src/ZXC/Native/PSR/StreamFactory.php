@@ -4,8 +4,9 @@
 namespace ZXC\Native\PSR;
 
 
-use ZXC\Interfaces\Psr\Http\Message\StreamFactoryInterface;
 use ZXC\Interfaces\Psr\Http\Message\StreamInterface;
+use ZXC\Interfaces\Psr\Http\Message\StreamFactoryInterface;
+
 
 class StreamFactory implements StreamFactoryInterface
 {
