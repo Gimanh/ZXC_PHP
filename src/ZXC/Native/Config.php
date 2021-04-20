@@ -1,12 +1,14 @@
 <?php
 
+
 namespace ZXC\Native;
+
 
 class Config
 {
     private static $config = [];
 
-    public static function init(array $config = [])
+    public static function init(array $config = []): void
     {
         self::$config = $config;
     }
@@ -38,13 +40,12 @@ class Config
         return $configParameters;
     }
 
-    public static function add(array $moreConfig = [])
+    public static function add(array $moreConfig = []): void
     {
         self::$config = array_merge_recursive(self::$config, $moreConfig);
-        return true;
     }
 
-    private static function keysToLower(array $input)
+    private static function keysToLower(array $input = []): array
     {
         $result = [];
         foreach ($input as $key => $value) {
