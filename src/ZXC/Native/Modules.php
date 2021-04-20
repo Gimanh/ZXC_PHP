@@ -4,6 +4,8 @@
 namespace ZXC\Native;
 
 
+use ReflectionClass;
+use ReflectionException;
 use RuntimeException;
 use ZXC\Interfaces\IModule;
 
@@ -72,12 +74,28 @@ class Modules
 
     public static function createInstance(ModuleParams $options)
     {
-        $instance = Helper::createInstanceOfClass($options->getClass());
+        $instance = self::createInstanceOfClass($options->getClass());
         if (!$instance instanceof IModule) {
             throw new RuntimeException('Module ' . $options['class'] . ' must implement \'ZXC\Interfaces\Module\'');
         }
         $instance->init($options->getOptions());
         return $instance;
+    }
+
+    public static function createInstanceOfClass(string $className)
+    {
+        $args = func_get_args();
+        if (count($args) > 1) {
+            try {
+                $r = new ReflectionClass($className);
+                unset($args[0]);
+                return $r->newInstanceArgs($args);
+            } catch (ReflectionException $e) {
+                return null;
+            }
+        } else {
+            return new $className;
+        }
     }
 
     /**

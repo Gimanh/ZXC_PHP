@@ -5,8 +5,8 @@ namespace ZXC\Modules\Logger;
 
 
 use DateTime;
-use ZXC\Native\Helper;
 use ZXC\Traits\Module;
+use ZXC\Native\FromGlobals;
 use ZXC\Interfaces\IModule;
 use ZXC\Interfaces\Psr\Log\LogLevel;
 use ZXC\Interfaces\Psr\Log\AbstractLogger;
@@ -60,7 +60,7 @@ class Logger extends AbstractLogger implements LoggerInterface, IModule
             file_put_contents($this->fullPath, trim(strtr($this->template, [
                     '{date}' => $this->getDate(),
                     '{level}' => $level,
-                    '{ip}' => Helper::getIp(),
+                    '{ip}' => FromGlobals::getIp(),
                     '{message}' => $message,
                     '{context}' => $this->contextStringify($context),
                 ])) . PHP_EOL, FILE_APPEND);
