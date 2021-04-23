@@ -16,5 +16,7 @@
             "ZXC\\": "src/ZXC"
         }
     },
-    "require": {}
+    "require": {
+        "php": ">=7.3"
+    }
 }
