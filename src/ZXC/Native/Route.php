@@ -60,7 +60,7 @@ class Route implements RequestHandlerInterface
             }
         }
 
-        $this->middlewares = $this->router->getAppMiddlewareHandlers() + $this->middlewares;
+        $this->middlewares = array_merge($this->router->getAppMiddlewareHandlers(), $this->middlewares);
 
         $this->regex = $this->createRegex($parsedParams['route']);
         $this->requestMethod = $parsedParams['method'];
