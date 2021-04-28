@@ -19,7 +19,7 @@ class Uri implements UriInterface
     /**
      * @var string
      */
-    private $userInfo;
+    private $userInfo = '';
     /**
      * @var string
      */
@@ -54,7 +54,7 @@ class Uri implements UriInterface
             }
             $this->scheme = isset($parts['scheme']) ? $parts['scheme'] : '';
             $this->userInfo = isset($parts['user']) ? $parts['user'] : '';
-            $this->host = isset($parts['host']) ? $parts['host'] : '';
+            $this->host = isset($parts['host']) ? strtolower($parts['host']) : '';
             $this->port = isset($parts['port']) ? $parts['port'] : null;
             $this->path = isset($parts['path']) ? $parts['path'] : '';
             $this->query = isset($parts['query']) ? $parts['query'] : '';
@@ -67,14 +67,14 @@ class Uri implements UriInterface
 
     public function getScheme()
     {
-        return $this->scheme;
+        return strtolower($this->scheme);
     }
 
     public function getAuthority()
     {
-        $authority = '';
+        $authority = strtolower($this->host);
         if ($this->userInfo !== '') {
-            $authority = $this->userInfo . '@' . $this->host;
+            $authority = $this->userInfo . '@' . $authority;
         }
 
         if ($this->port !== null) {
@@ -91,7 +91,7 @@ class Uri implements UriInterface
 
     public function getHost()
     {
-        return $this->host;
+        return strtolower($this->host);
     }
 
     public function getPort()
@@ -118,21 +118,26 @@ class Uri implements UriInterface
     public function withScheme($scheme)
     {
         $new = clone $this;
-        $new->scheme = $scheme;
+        $new->scheme = strtolower($scheme);
         return $new;
     }
 
     public function withUserInfo($user, $password = null)
     {
         $new = clone $this;
-        $new->userInfo = $user . ':' . $password;
+        if ($user) {
+            $new->userInfo = $user . ':' . $password;
+        } else {
+            $new->userInfo = '';
+        }
+
         return $new;
     }
 
     public function withHost($host)
     {
         $new = clone $this;
-        $new->host = $host;
+        $new->host = strtolower($host);
         return $new;
     }
 
@@ -145,7 +150,7 @@ class Uri implements UriInterface
 
     public function withPath($path)
     {
-        $new = clone  $this;
+        $new = clone $this;
         $new->path = $path;
         return $new;
     }
@@ -169,7 +174,7 @@ class Uri implements UriInterface
         $uri = '';
         $authority = $this->getAuthority();
         if ($this->scheme != '') {
-            $uri .= $this->scheme . ':';
+            $uri .= strtolower($this->scheme) . ':';
         }
         if ($authority != '' || $this->scheme === 'file') {
             $uri .= '//' . $authority;
