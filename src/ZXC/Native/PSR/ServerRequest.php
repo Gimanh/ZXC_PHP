@@ -84,7 +84,7 @@ class ServerRequest extends Request implements ServerRequestInterface
     public static function getPsrServerHeaders()
     {
         $psrHeaders = [];
-        $allHeaders = getallheaders();
+        $allHeaders = self::getAllHeaders();
         foreach ($allHeaders as $name => $value) {
             if (!is_array($value)) {
                 $value = [$value];
@@ -92,6 +92,17 @@ class ServerRequest extends Request implements ServerRequestInterface
             $psrHeaders[$name] = $value;
         }
         return $psrHeaders;
+    }
+
+    public static function getAllHeaders()
+    {
+        $headers = [];
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+            }
+        }
+        return $headers;
     }
 
     private function getUriString()

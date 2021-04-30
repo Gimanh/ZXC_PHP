@@ -4,6 +4,7 @@
 namespace ZXC\Native;
 
 
+use InvalidArgumentException;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 use ZXC\Interfaces\Psr\Server\RequestHandlerInterface;
 use ZXC\Interfaces\Psr\Http\Message\ServerRequestInterface;
@@ -22,6 +23,11 @@ class Handler implements RequestHandlerInterface
 
     public function __construct($handlerCaller, $nextMiddleware = null, $middlewareName = '')
     {
+        if (!$handlerCaller) {
+            throw new InvalidArgumentException(
+                'Argument handler caller is not defined.'
+            );
+        }
         $this->handlerCaller = $handlerCaller;
         $this->nextHandler = $nextMiddleware;
         $this->middlewareName = $middlewareName;
