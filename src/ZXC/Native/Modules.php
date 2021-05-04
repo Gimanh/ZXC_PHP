@@ -21,7 +21,7 @@ class Modules
 
     private static $modulesName = [];
 
-    public static function install(array $options = [])
+    public static function install(array $options = []): void
     {
         foreach ($options as $name => $option) {
             self::$modulesName[strtolower($name)] = $name;
@@ -38,6 +38,10 @@ class Modules
         }
     }
 
+    /**
+     * @param string $moduleName
+     * @return IModule|null
+     */
     public static function get(string $moduleName)
     {
         if (!self::has($moduleName)) {
@@ -55,34 +59,45 @@ class Modules
      * Returns new instance of registered Module with given parameters $options
      * @param $moduleName - registered module name exp 'Logger'
      * @param array|null $options
-     * @return mixed|null
+     * @return IModule | null
      */
     public static function getNew(string $moduleName, array $options = [])
     {
         if (!self::has($moduleName)) {
             return null;
         }
+
+        if (!isset(self::$modulesInstances[$moduleName])) {
+            return call_user_func_array([
+                self::createInstance(self::$modulesOptions[$moduleName]), 'create'
+            ], [$options]);
+        }
+
         return call_user_func_array([
             self::$modulesInstances[self::$modulesName[strtolower($moduleName)]], 'create'
         ], [$options]);
     }
 
-    public static function has($moduleName)
+    public static function has($moduleName): bool
     {
         return isset(self::$modulesName[strtolower($moduleName)]);
     }
 
-    public static function createInstance(ModuleParams $options)
+    public static function createInstance(ModuleParams $params): IModule
     {
-        $instance = self::createInstanceOfClass($options->getClass());
+        $instance = self::createInstanceOfClass($params->getClass());
         if (!$instance instanceof IModule) {
-            throw new RuntimeException('Module ' . $options['class'] . ' must implement \'ZXC\Interfaces\Module\'');
+            throw new RuntimeException('Module ' . $params['class'] . ' must implement \'ZXC\Interfaces\Module\'');
         }
-        $instance->init($options->getOptions());
+        $instance->init($params->getOptions());
         return $instance;
     }
 
-    public static function createInstanceOfClass(string $className)
+    /**
+     * @param string $className
+     * @return IModule | null
+     */
+    private static function createInstanceOfClass(string $className)
     {
         $args = func_get_args();
         if (count($args) > 1) {
@@ -101,7 +116,7 @@ class Modules
     /**
      * @param $className - full class name with namespace
      * @method getModuleByClassName
-     * @return mixed
+     * @return null | IModule
      */
     public static function getByClassName($className)
     {
@@ -118,7 +133,7 @@ class Modules
             }
         }
 
-        return false;
+        return null;
     }
 
     public static function uninstall(array $options = []): bool
@@ -127,10 +142,10 @@ class Modules
         foreach ($options as $key => $value) {
             if ($value) {
                 $name = self::$modulesName[strtolower($key)];
-                $wasDeleted = true;
                 unset(self::$modulesInstances[$name]);
                 unset(self::$modulesOptions[$name]);
                 unset(self::$modulesName[strtolower($key)]);
+                $wasDeleted = true;
             }
         }
         return $wasDeleted;
