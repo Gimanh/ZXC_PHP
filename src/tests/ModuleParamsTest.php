@@ -3,7 +3,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-class ModuleParams extends TestCase
+class ModuleParamsTest extends TestCase
 {
     public function testGetters()
     {
