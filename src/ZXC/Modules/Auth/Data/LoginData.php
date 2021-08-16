@@ -60,6 +60,7 @@ class LoginData implements AuthenticableData
         return [
             'login' => $this->loginOrEmail,
             'password' => $this->password,
+            'rememberMe' => $this->rememberMe,
         ];
     }
 
