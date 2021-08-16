@@ -9,10 +9,6 @@ use InvalidArgumentException;
 
 interface AuthenticableData
 {
-    /**
-     * @return bool
-     * @throws InvalidArgumentException
-     */
     public function validate(): bool;
 
     public function getData(): array;
