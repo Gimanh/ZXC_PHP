@@ -2,9 +2,7 @@
 
 namespace ZXC\Modules\Auth\Data;
 
-use Closure;
-use InvalidArgumentException;
-
+use ZXC\Modules\Auth\Exceptions\InvalidLogin;
 
 class LoginData implements AuthenticableData
 {
@@ -20,20 +18,26 @@ class LoginData implements AuthenticableData
      */
     protected string $password = '';
 
-    /**
-     * Function for custom password validation
-     * @var Closure
-     */
-    protected Closure $passwordValidator;
+    protected bool $rememberMe = false;
 
-    public function __construct(string $loginOrEmail, string $password, Closure $passwordValidator)
+    /**
+     * @param string $loginOrEmail
+     * @param string $password
+     * @param bool $rememberMe
+     * @throws InvalidLogin
+     */
+    public function __construct(string $loginOrEmail, string $password, bool $rememberMe = false)
     {
         $this->loginOrEmail = strtolower($loginOrEmail);
         $this->password = $password;
-        $this->passwordValidator = $passwordValidator;
+        $this->rememberMe = $rememberMe;
         $this->validate();
     }
 
+    /**
+     * @return bool
+     * @throws InvalidLogin
+     */
     public function validate(): bool
     {
         if (filter_var($this->loginOrEmail, FILTER_VALIDATE_EMAIL)) {
@@ -43,17 +47,7 @@ class LoginData implements AuthenticableData
         }
 
         if (!$validLogin) {
-            throw new InvalidArgumentException('Can not validate login. Rule is "/^[a-z0-9]{4,30}$/".');
-        }
-
-        if ($this->passwordValidator) {
-            $validatePassword = call_user_func($this->passwordValidator, $this->password);
-        } else {
-            $validatePassword = preg_match('/^\S*(?=\S{8,})(?=\S*[a-z])(?=\S*[A-Z])(?=\S*[\d])\S*$/', $this->password);
-        }
-
-        if (!$validatePassword) {
-            throw new InvalidArgumentException('Can not validate password.');
+            throw new InvalidLogin();
         }
 
         $this->password = password_hash($this->password, PASSWORD_BCRYPT, ['cost' => 10]);
@@ -61,20 +55,12 @@ class LoginData implements AuthenticableData
         return true;
     }
 
-    /**
-     * @return string
-     */
-    public function getLoginOrEmail(): string
+    public function getData(): array
     {
-        return $this->loginOrEmail;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
+        return [
+            'login' => $this->loginOrEmail,
+            'password' => $this->password,
+        ];
     }
 
 }

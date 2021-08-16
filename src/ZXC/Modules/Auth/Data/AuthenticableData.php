@@ -15,4 +15,5 @@ interface AuthenticableData
      */
     public function validate(): bool;
 
+    public function getData(): array;
 }
