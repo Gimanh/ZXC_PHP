@@ -34,7 +34,7 @@ class Cors implements IModule
         $this->methods = $options['methods'] ?? [];
     }
 
-    public function getResponseHeaders()
+    public function getResponseHeaders(): array
     {
         if ($this->origin === '*') {
             $this->origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
