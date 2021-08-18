@@ -15,6 +15,9 @@ use ZXC\Interfaces\Psr\Http\Message\ServerRequestFactoryInterface;
 
 class Router
 {
+
+    const METHOD_OPTIONS = 'OPTIONS';
+
     /**
      * Routes from config
      * @var array
@@ -47,10 +50,12 @@ class Router
     /** @var array */
     protected $appMiddlewares = [];
 
+    protected $corsEnabled = false;
+
     public function __construct(
         ServerRequestFactoryInterface $serverRequestFactory,
-        ResponseFactoryInterface $responseFactory,
-        array $routeConfig
+        ResponseFactoryInterface      $responseFactory,
+        array                         $routeConfig
     )
     {
         $this->serverRequest = $serverRequestFactory->createServerRequest('', '');
@@ -63,6 +68,8 @@ class Router
         if (!isset($config['routes'])) {
             throw new InvalidArgumentException('Undefined routes in Router config');
         }
+
+        $this->corsEnabled = $config['enableCors'] ?? false;
 
         $this->appMiddlewares = $config['useAppMiddlewares'] ?? [];
 
@@ -118,6 +125,9 @@ class Router
     private function registerRouteInstance(Route $parsedRoute): void
     {
         $this->routes[$parsedRoute->getMethod()][$parsedRoute->getRoutePath()] = $parsedRoute;
+        if ($this->corsEnabled) {
+            $this->routes[self::METHOD_OPTIONS][$parsedRoute->getRoutePath()] = $parsedRoute;
+        }
     }
 
     /**
