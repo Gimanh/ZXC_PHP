@@ -7,12 +7,24 @@ use ZXC\Modules\Auth\Exceptions\InvalidChangePasswordArgs;
 class ChangePasswordData implements AuthenticableData
 {
 
+    /**
+     * @var string
+     */
     protected string $login = '';
 
+    /**
+     * @var string
+     */
     protected string $currentPassword = '';
 
+    /**
+     * @var string
+     */
     protected string $firstNewPassword = '';
 
+    /**
+     * @var string
+     */
     protected string $confirmFirstPassword = '';
 
     /**

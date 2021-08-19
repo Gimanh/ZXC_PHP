@@ -9,21 +9,30 @@ class Cors implements IModule
 {
     use Module;
 
-    protected string $origin = '';
+    /**
+     * @var string
+     */
+    protected $origin = '';
 
-    protected bool $credentials = false;
+    /**
+     * @var bool
+     */
+    protected $credentials = false;
 
-    protected int $maxAge = 0;
+    /**
+     * @var int
+     */
+    protected $maxAge = 0;
 
     /**
      * @var string[]
      */
-    protected array $headers = [];
+    protected $headers = [];
 
     /**
      * @var string[]
      */
-    protected array $methods = [];
+    protected $methods = [];
 
     public function init(array $options = [])
     {
