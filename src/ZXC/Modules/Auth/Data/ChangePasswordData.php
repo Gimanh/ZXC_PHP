@@ -10,22 +10,22 @@ class ChangePasswordData implements AuthenticableData
     /**
      * @var string
      */
-    protected string $login = '';
+    protected $login = '';
 
     /**
      * @var string
      */
-    protected string $currentPassword = '';
+    protected $currentPassword = '';
 
     /**
      * @var string
      */
-    protected string $firstNewPassword = '';
+    protected $firstNewPassword = '';
 
     /**
      * @var string
      */
-    protected string $confirmFirstPassword = '';
+    protected $confirmFirstPassword = '';
 
     /**
      * @param string $login

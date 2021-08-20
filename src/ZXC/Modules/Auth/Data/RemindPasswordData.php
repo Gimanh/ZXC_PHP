@@ -7,9 +7,9 @@ use ZXC\Modules\Auth\Exceptions\InvalidRemindPasswordArgs;
 class RemindPasswordData implements AuthenticableData
 {
 
-    protected string $code = '';
+    protected $code = '';
 
-    protected string $login = '';
+    protected $login = '';
 
     /**
      * @param string $login

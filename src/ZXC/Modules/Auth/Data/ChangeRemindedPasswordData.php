@@ -7,13 +7,13 @@ use ZXC\Modules\Auth\Exceptions\InvalidChangeRemindedPasswordArgs;
 class ChangeRemindedPasswordData implements AuthenticableData
 {
 
-    protected string $login = '';
+    protected $login = '';
 
-    protected string $code = '';
+    protected $code = '';
 
-    protected string $firstNewPassword = '';
+    protected $firstNewPassword = '';
 
-    protected string $confirmFirstPassword = '';
+    protected $confirmFirstPassword = '';
 
     /**
      * @param string $login

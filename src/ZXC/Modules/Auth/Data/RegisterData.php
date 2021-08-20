@@ -9,17 +9,35 @@ use ZXC\Modules\Auth\Exceptions\PasswordMismatch;
 
 class RegisterData implements AuthenticableData
 {
-    protected string $login = '';
+    /**
+     * @var string
+     */
+    protected $login = '';
 
-    protected string $email = '';
+    /**
+     * @var string
+     */
+    protected $email = '';
 
-    protected string $password = '';
+    /**
+     * @var string
+     */
+    protected $password = '';
 
-    protected string $passwordFirst = '';
+    /**
+     * @var string
+     */
+    protected $passwordFirst = '';
 
-    protected string $passwordSecond = '';
+    /**
+     * @var string
+     */
+    protected $passwordSecond = '';
 
-    protected string $confirmEmailCode = '';
+    /**
+     * @var string
+     */
+    protected $confirmEmailCode = '';
 
     /**
      * @param string $login
