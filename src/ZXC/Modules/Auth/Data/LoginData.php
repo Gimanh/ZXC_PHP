@@ -53,8 +53,6 @@ class LoginData implements AuthenticableData
             throw new InvalidLogin();
         }
 
-        $this->password = password_hash($this->password, PASSWORD_BCRYPT, ['cost' => 10]);
-
         return true;
     }
 

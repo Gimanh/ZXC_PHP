@@ -82,11 +82,11 @@ class RegisterData implements AuthenticableData
             throw new InvalidPassword();
         }
 
-        if (filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+        if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidEmail();
         }
 
-        if (!!preg_match('/^[a-z0-9]{4,30}$/', $this->login)) {
+        if (!preg_match('/^[a-z0-9]{4,30}$/', $this->login)) {
             throw new InvalidLogin();
         }
         return true;

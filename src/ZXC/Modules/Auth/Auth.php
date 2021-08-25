@@ -2,6 +2,7 @@
 
 namespace ZXC\Modules\Auth;
 
+use ZXC\Modules\Auth\Exceptions\InvalidAuthConfig;
 use ZXC\Traits\Module;
 use ZXC\Interfaces\IModule;
 use ZXC\Modules\Auth\Data\LoginData;
@@ -15,19 +16,32 @@ class Auth implements Authenticable, IModule
 {
     use Module;
 
+    /**
+     * @var null | AuthStorage
+     */
+    protected $storageProvider = null;
+
+    /**
+     * @param array $options
+     * @throws InvalidAuthConfig
+     */
     public function init(array $options = [])
     {
-        // TODO: Implement init() method.
+        if (!isset($options['storageProvider'])) {
+            throw new InvalidAuthConfig('Can not get property "storageProvider".');
+        }
+        $this->storageProvider = new $options['storageProvider']();
     }
 
     public function login(LoginData $data)
     {
+        $stop = false;
         // TODO: Implement login() method.
     }
 
     public function register(RegisterData $data)
     {
-        // TODO: Implement register() method.
+        return $this->storageProvider->insetUser($data);
     }
 
     public function confirmEmail(ConfirmEmailData $data)

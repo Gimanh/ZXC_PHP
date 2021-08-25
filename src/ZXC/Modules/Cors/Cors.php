@@ -57,4 +57,44 @@ class Cors implements IModule
             'Access-Control-Allow-Headers' => implode(',', $this->headers)
         ];
     }
+
+    /**
+     * @return string
+     */
+    public function getOrigin(): string
+    {
+        return $this->origin;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCredentials(): bool
+    {
+        return $this->credentials;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMaxAge(): int
+    {
+        return $this->maxAge;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getHeaders(): array
+    {
+        return $this->headers;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getMethods(): array
+    {
+        return $this->methods;
+    }
 }
