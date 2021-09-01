@@ -8,5 +8,5 @@ interface AuthStorage
 {
     public function fetchUser($login);
 
-    public function insetUser(RegisterData $registerData):bool;
+    public function insetUser(RegisterData $registerData): int;
 }

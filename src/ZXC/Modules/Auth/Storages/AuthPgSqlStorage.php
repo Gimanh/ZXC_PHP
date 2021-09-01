@@ -2,7 +2,9 @@
 
 namespace ZXC\Modules\Auth\Storages;
 
+use Exception;
 use PDO;
+use PDOException;
 use ZXC\Modules\Auth\AuthStorage;
 use ZXC\Modules\Auth\Data\RegisterData;
 use ZXC\Modules\DB\DB;
@@ -15,6 +17,8 @@ class AuthPgSqlStorage implements AuthStorage
      */
     protected $pdo = null;
 
+    protected $errorMessage = '';
+
     public function __construct()
     {
         /** @var DB $db */
@@ -24,11 +28,23 @@ class AuthPgSqlStorage implements AuthStorage
         }
     }
 
-    public function insetUser(RegisterData $registerData): bool
+    public function insetUser(RegisterData $registerData): int
     {
-        $query = '';
-        $stop = false;
-        return false;
+        $query = 'INSERT INTO tv_auth.users (login, email, password, confirm_email_code)
+                    VALUES (:login, :email, :password, :confirm_email_code) RETURNING id;';
+        $stmt = $this->pdo->prepare($query);
+
+        if (is_callable('ZXC\Modules\Auth\Handlers\AuthenticationRegistration')) {
+
+        }
+        try {
+            $stmt->execute($registerData->getData());
+        } catch (PDOException $exception) {
+            $this->errorMessage = $exception->getMessage();
+            return -1;
+        }
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['id'];
     }
 
     public function fetchUser($login)

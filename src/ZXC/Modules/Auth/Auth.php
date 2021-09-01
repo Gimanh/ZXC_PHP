@@ -22,6 +22,17 @@ class Auth implements Authenticable, IModule
     protected $storageProvider = null;
 
     /**
+     * @var bool
+     */
+    protected $confirmEmail = true;
+
+    /**
+     * Handler which will send code to user
+     * @var null
+     */
+    protected $codeProvider = null;
+
+    /**
      * @param array $options
      * @throws InvalidAuthConfig
      */
@@ -31,17 +42,21 @@ class Auth implements Authenticable, IModule
             throw new InvalidAuthConfig('Can not get property "storageProvider".');
         }
         $this->storageProvider = new $options['storageProvider']();
+
+        $this->confirmEmail = $options['confirm'] ?? true;
+
+        $this->codeProvider = $options['codeProvider'] ?? null;
     }
 
     public function login(LoginData $data)
     {
-        $stop = false;
         // TODO: Implement login() method.
     }
 
     public function register(RegisterData $data)
     {
-        return $this->storageProvider->insetUser($data);
+        $inserted = $this->storageProvider->insetUser($data);
+        return $inserted;
     }
 
     public function confirmEmail(ConfirmEmailData $data)
