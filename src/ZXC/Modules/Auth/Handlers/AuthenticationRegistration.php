@@ -41,7 +41,7 @@ class AuthenticationRegistration
             return $response->withStatus(400);
         }
         $loginResult = $this->auth->register($registerData);
-        $response->getBody()->write(json_encode(['registration' => $loginResult !== false]));
+        $response->getBody()->write(json_encode($loginResult));
         return $response;
     }
 

@@ -58,14 +58,14 @@ class Auth implements Authenticable, IModule
     {
         $inserted = $this->storageProvider->insetUser($data);
         if ($inserted === AuthStorage::USER_NOT_INSERTED) {
-            return false;
+            return ['registration' => false, 'confirmEmail' => false];
         }
         if ($this->confirmEmail && $this->codeProvider) {
             $codeData = $data->getData();
             unset($codeData['password']);
             CallHandler::execHandler($this->codeProvider, [$codeData]);
         }
-        return $inserted;
+        return ['registration' => true, 'confirmEmail' => $this->confirmEmail && $this->codeProvider];
     }
 
     public function confirmEmail(ConfirmEmailData $data)
