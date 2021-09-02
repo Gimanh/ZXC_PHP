@@ -3,6 +3,7 @@
 namespace ZXC\Modules\Auth;
 
 use ZXC\Modules\Auth\Exceptions\InvalidAuthConfig;
+use ZXC\Native\CallHandler;
 use ZXC\Traits\Module;
 use ZXC\Interfaces\IModule;
 use ZXC\Modules\Auth\Data\LoginData;
@@ -43,9 +44,9 @@ class Auth implements Authenticable, IModule
         }
         $this->storageProvider = new $options['storageProvider']();
 
-        $this->confirmEmail = $options['confirm'] ?? true;
+        $this->confirmEmail = $options['email']['confirm'] ?? true;
 
-        $this->codeProvider = $options['codeProvider'] ?? null;
+        $this->codeProvider = $options['email']['codeProvider'] ?? null;
     }
 
     public function login(LoginData $data)
@@ -56,6 +57,14 @@ class Auth implements Authenticable, IModule
     public function register(RegisterData $data)
     {
         $inserted = $this->storageProvider->insetUser($data);
+        if ($inserted === AuthStorage::USER_NOT_INSERTED) {
+            return false;
+        }
+        if ($this->confirmEmail && $this->codeProvider) {
+            $codeData = $data->getData();
+            unset($codeData['password']);
+            CallHandler::execHandler($this->codeProvider, [$codeData]);
+        }
         return $inserted;
     }
 

@@ -34,14 +34,11 @@ class AuthPgSqlStorage implements AuthStorage
                     VALUES (:login, :email, :password, :confirm_email_code) RETURNING id;';
         $stmt = $this->pdo->prepare($query);
 
-        if (is_callable('ZXC\Modules\Auth\Handlers\AuthenticationRegistration')) {
-
-        }
         try {
             $stmt->execute($registerData->getData());
         } catch (PDOException $exception) {
             $this->errorMessage = $exception->getMessage();
-            return -1;
+            return self::USER_NOT_INSERTED;
         }
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['id'];

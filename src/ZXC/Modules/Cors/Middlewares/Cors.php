@@ -20,7 +20,6 @@ class Cors implements MiddlewareInterface
             return $this->prepareResponse($response);
         }
         $response = $handler->handle($request);
-        $response->getBody()->write('World');
         return $this->prepareResponse($response);    }
 
     protected function prepareResponse(ResponseInterface $response): ResponseInterface
