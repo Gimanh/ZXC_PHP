@@ -52,7 +52,7 @@ class User implements UserModel
         return isset($this->permissions[$permissionName]);
     }
 
-    public function getUserInfo(): array
+    public function getInfo(): array
     {
         return [
             'login' => $this->login,

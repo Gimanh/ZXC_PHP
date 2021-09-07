@@ -14,5 +14,5 @@ interface UserModel
 
     public function hasPermissions($permissionName): bool;
 
-    public function getUserInfo(): array;
+    public function getInfo(): array;
 }

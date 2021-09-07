@@ -65,4 +65,32 @@ class LoginData implements AuthenticableData
         ];
     }
 
+    public function isEmail(): bool
+    {
+        return !!filter_var($this->loginOrEmail, FILTER_VALIDATE_EMAIL);
+    }
+
+    /**
+     * @return string
+     */
+    public function getLoginOrEmail(): string
+    {
+        return $this->loginOrEmail;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isRememberMe(): bool
+    {
+        return $this->rememberMe;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
 }

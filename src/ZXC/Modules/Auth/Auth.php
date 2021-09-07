@@ -2,6 +2,7 @@
 
 namespace ZXC\Modules\Auth;
 
+use ZXC\Interfaces\Psr\Http\Message\RequestInterface;
 use ZXC\Modules\Auth\Exceptions\InvalidAuthConfig;
 use ZXC\Native\CallHandler;
 use ZXC\Traits\Module;
@@ -34,6 +35,11 @@ class Auth implements Authenticable, IModule
     protected $codeProvider = null;
 
     /**
+     * @var null | User
+     */
+    protected $user = null;
+
+    /**
      * @param array $options
      * @throws InvalidAuthConfig
      */
@@ -51,7 +57,19 @@ class Auth implements Authenticable, IModule
 
     public function login(LoginData $data)
     {
-        // TODO: Implement login() method.
+        if ($data->isEmail()) {
+            $userInfo = $this->storageProvider->fetchUserByEmail($data->getLoginOrEmail());
+        } else {
+            $userInfo = $this->storageProvider->fetchUserByLogin($data->getLoginOrEmail());
+        }
+        if ($userInfo) {
+            if (password_verify($data->getPassword(), $userInfo['password'])) {
+                $permissions = $this->storageProvider->fetchUserPermissions($userInfo['id']);
+                $this->user = new User($userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
+                return true;
+            }
+        }
+        return false;
     }
 
     public function register(RegisterData $data)
@@ -86,5 +104,20 @@ class Auth implements Authenticable, IModule
     public function changePassword(ChangePasswordData $data)
     {
         // TODO: Implement changePassword() method.
+    }
+
+    public function logout()
+    {
+        // TODO: Implement logout() method.
+    }
+
+    public function retrieveFromRequest(RequestInterface $request): UserModel
+    {
+        // TODO: Implement retrieveFromRequest() method.
+    }
+
+    public function getUser(): UserModel
+    {
+        return new User();
     }
 }

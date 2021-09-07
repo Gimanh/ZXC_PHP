@@ -2,6 +2,7 @@
 
 namespace ZXC\Modules\Auth;
 
+use ZXC\Interfaces\Psr\Http\Message\RequestInterface;
 use ZXC\Modules\Auth\Data\LoginData;
 use ZXC\Modules\Auth\Data\RegisterData;
 use ZXC\Modules\Auth\Data\ConfirmEmailData;
@@ -13,6 +14,8 @@ interface Authenticable
 {
     public function login(LoginData $data);
 
+    public function logout();
+
     public function register(RegisterData $data);
 
     public function confirmEmail(ConfirmEmailData $data);
@@ -22,4 +25,9 @@ interface Authenticable
     public function changeRemindedPassword(ChangeRemindedPasswordData $data);
 
     public function changePassword(ChangePasswordData $data);
+
+    public function getUser(): UserModel;
+
+    public function retrieveFromRequest(RequestInterface $request): UserModel;
+
 }
