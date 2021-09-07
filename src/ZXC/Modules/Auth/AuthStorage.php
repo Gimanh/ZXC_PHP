@@ -8,7 +8,11 @@ interface AuthStorage
 {
     const USER_NOT_INSERTED = -1;
 
-    public function fetchUser($login);
+    public function fetchUserByLogin(string $login);
+
+    public function fetchUserByEmail(string $email);
+
+    public function fetchUserPermissions(int $userId):array;
 
     /**
      * Add user to database
