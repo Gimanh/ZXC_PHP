@@ -12,7 +12,7 @@ class User implements UserModel
 
     protected $permissions = [];
 
-    public function __construct(string $login, string $email, int $block, array $permissions)
+    public function __construct(string $login = '', string $email = '', int $block = 0, array $permissions = [])
     {
         $this->login = $login;
         $this->email = $email;
@@ -54,6 +54,10 @@ class User implements UserModel
 
     public function getUserInfo(): array
     {
-        return [];
+        return [
+            'login' => $this->login,
+            'email' => $this->email,
+            'permissions' => array_keys($this->permissions),
+        ];
     }
 }
