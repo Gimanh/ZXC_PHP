@@ -63,4 +63,31 @@ class DB implements IModule
     {
         return $this->pdo;
     }
+
+    public function close()
+    {
+        $this->pdo = null;
+    }
+
+    public function selectOne($query, $args)
+    {
+        $stmt = $this->pdo->prepare($query);
+        $status = $stmt->execute($args);
+        if ($status) {
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+        return null;
+    }
+
+    public function insert($query, $args)
+    {
+        $stmt = $this->pdo->prepare($query);
+        return $stmt->execute($args);
+    }
+
+    public function delete($query, $args)
+    {
+        $stmt = $this->pdo->prepare($query);
+        return $stmt->execute($args);
+    }
 }

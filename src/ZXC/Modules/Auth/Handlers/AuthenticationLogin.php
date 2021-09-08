@@ -37,6 +37,7 @@ class AuthenticationLogin
             return $response->withStatus(400);
         }
         $loginResult = $this->auth->login($loginData);
+        $response->getBody()->write($loginResult);
         return $response;
     }
 
