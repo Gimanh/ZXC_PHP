@@ -34,6 +34,8 @@ class Cors implements IModule
      */
     protected $methods = [];
 
+    protected $exposeHeaders = [];
+
     public function init(array $options = [])
     {
         $this->origin = $options['origin'] ?? '';
@@ -41,6 +43,7 @@ class Cors implements IModule
         $this->maxAge = $options['maxAge'] ?? 0;
         $this->headers = $options['headers'] ?? [];
         $this->methods = $options['methods'] ?? [];
+        $this->exposeHeaders = $options['expose'] ?? [];
     }
 
     public function getResponseHeaders(): array
@@ -96,5 +99,13 @@ class Cors implements IModule
     public function getMethods(): array
     {
         return $this->methods;
+    }
+
+    /**
+     * @return string
+     */
+    public function getExposeHeaders(): array
+    {
+        return $this->exposeHeaders;
     }
 }

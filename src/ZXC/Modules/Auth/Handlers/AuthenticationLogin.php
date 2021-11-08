@@ -2,13 +2,12 @@
 
 namespace ZXC\Modules\Auth\Handlers;
 
-use ZXC\Modules\Auth\Data\LoginData;
-use ZXC\Modules\Auth\Exceptions\InvalidLogin;
 use ZXC\Native\Modules;
 use ZXC\Modules\Auth\Auth;
 use ZXC\Native\RouteParams;
-use ZXC\Native\PSR\Response;
 use ZXC\Native\PSR\ServerRequest;
+use ZXC\Modules\Auth\Data\LoginData;
+use ZXC\Modules\Auth\Exceptions\InvalidLogin;
 use ZXC\Modules\Auth\Exceptions\AuthModuleNotFound;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 
@@ -30,15 +29,17 @@ class AuthenticationLogin
         }
     }
 
-    public function __invoke(ServerRequest $request, Response $response, RouteParams $routeParams): ResponseInterface
+    public function __invoke(ServerRequest $request, ResponseInterface $response, RouteParams $routeParams): ResponseInterface
     {
         $loginData = $this->getLoginData($request);
         if (!$loginData) {
             return $response->withStatus(400);
         }
         $loginResult = $this->auth->login($loginData);
-        $response->getBody()->write($loginResult);
-        return $response;
+        if ($loginResult) {
+            return $this->auth->getAuthTypeProvider()->provide($this->auth->getUser()->getInfo(), $response);
+        }
+        return $response->withStatus(400);
     }
 
     /**

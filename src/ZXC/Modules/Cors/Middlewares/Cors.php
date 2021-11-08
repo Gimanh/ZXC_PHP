@@ -20,12 +20,19 @@ class Cors implements MiddlewareInterface
             return $this->prepareResponse($response);
         }
         $response = $handler->handle($request);
-        return $this->prepareResponse($response);    }
+        return $this->prepareResponse($response);
+    }
 
     protected function prepareResponse(ResponseInterface $response): ResponseInterface
     {
         /** @var $cors \ZXC\Modules\Cors\Cors */
         $cors = Modules::get('cors');
+
+        if ($cors->getExposeHeaders()) {
+            $response = $response
+                ->withHeader('Access-Control-Expose-Headers', implode(',', $cors->getExposeHeaders()));
+        }
+
         return $response
             ->withHeader('Access-Control-Max-Age', (string)$cors->getMaxAge())
             ->withHeader('Access-Control-Allow-Origin', $cors->getOrigin())

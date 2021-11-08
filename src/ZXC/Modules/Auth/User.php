@@ -4,6 +4,8 @@ namespace ZXC\Modules\Auth;
 
 class User implements UserModel
 {
+    protected $id = null;
+
     protected $login = '';
 
     protected $email = '';
@@ -12,8 +14,9 @@ class User implements UserModel
 
     protected $permissions = [];
 
-    public function __construct(string $login = '', string $email = '', int $block = 0, array $permissions = [])
+    public function __construct(int $id, string $login = '', string $email = '', int $block = 0, array $permissions = [])
     {
+        $this->id = $id;
         $this->login = $login;
         $this->email = $email;
         $this->block = $block;
@@ -44,7 +47,11 @@ class User implements UserModel
 
     public function getPermissions(): array
     {
-        return $this->permissions;
+        $result = $this->permissions;
+        foreach ($result as $permission => $data) {
+            $result[$permission] = true;
+        }
+        return $result;
     }
 
     public function hasPermissions($permissionName): bool
@@ -55,9 +62,18 @@ class User implements UserModel
     public function getInfo(): array
     {
         return [
+            'id' => $this->id,
             'login' => $this->login,
             'email' => $this->email,
-            'permissions' => array_keys($this->permissions),
+            'permissions' => $this->getPermissions(),
         ];
+    }
+
+    /**
+     * @return int
+     */
+    public function getId(): int
+    {
+        return $this->id;
     }
 }

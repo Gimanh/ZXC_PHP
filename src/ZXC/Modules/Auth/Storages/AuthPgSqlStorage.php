@@ -2,13 +2,12 @@
 
 namespace ZXC\Modules\Auth\Storages;
 
-use Exception;
 use PDO;
 use PDOException;
-use ZXC\Modules\Auth\AuthStorage;
-use ZXC\Modules\Auth\Data\RegisterData;
 use ZXC\Modules\DB\DB;
 use ZXC\Native\Modules;
+use ZXC\Modules\Auth\AuthStorage;
+use ZXC\Modules\Auth\Data\RegisterData;
 
 class AuthPgSqlStorage implements AuthStorage
 {
@@ -74,7 +73,7 @@ class AuthPgSqlStorage implements AuthStorage
                              LEFT JOIN tv_auth.group_to_roles gtr ON gtr.group_id = utg.group_id
                              LEFT JOIN tv_auth.role_to_permissions rtp ON rtp.role_id = gtr.role_id
                              LEFT JOIN tv_auth.permissions p ON p.id = rtp.permission_id
-                    WHERE usr.id = ?;';
+                    WHERE utg.user_id = ?;';
         $stmt = $this->pdo->prepare($query);
         $status = $stmt->execute([$userId]);
         if ($status) {

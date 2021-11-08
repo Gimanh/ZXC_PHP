@@ -79,7 +79,7 @@ class DB implements IModule
         return null;
     }
 
-    public function insert($query, $args)
+    public function insert(string $query, array $args)
     {
         $stmt = $this->pdo->prepare($query);
         return $stmt->execute($args);

@@ -2,8 +2,6 @@
 
 namespace ZXC\Modules\Auth;
 
-use ZXC\Interfaces\Psr\Http\Message\RequestInterface;
-use ZXC\Modules\Auth\Exceptions\InvalidAuthConfig;
 use ZXC\Native\CallHandler;
 use ZXC\Traits\Module;
 use ZXC\Interfaces\IModule;
@@ -12,6 +10,9 @@ use ZXC\Modules\Auth\Data\RegisterData;
 use ZXC\Modules\Auth\Data\ConfirmEmailData;
 use ZXC\Modules\Auth\Data\RemindPasswordData;
 use ZXC\Modules\Auth\Data\ChangePasswordData;
+use ZXC\Modules\Auth\Exceptions\InvalidAuthConfig;
+use ZXC\Modules\Auth\Providers\AuthJwtTokenProvider;
+use ZXC\Interfaces\Psr\Http\Message\RequestInterface;
 use ZXC\Modules\Auth\Data\ChangeRemindedPasswordData;
 
 class Auth implements Authenticable, IModule
@@ -40,6 +41,11 @@ class Auth implements Authenticable, IModule
     protected $user = null;
 
     /**
+     * @var null | AuthLoginProvider
+     */
+    protected $authTypeProvider = null;
+
+    /**
      * @param array $options
      * @throws InvalidAuthConfig
      */
@@ -53,6 +59,9 @@ class Auth implements Authenticable, IModule
         $this->confirmEmail = $options['email']['confirm'] ?? true;
 
         $this->codeProvider = $options['email']['codeProvider'] ?? null;
+
+        $this->authTypeProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [])
+            ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? []);
     }
 
     public function login(LoginData $data)
@@ -65,7 +74,7 @@ class Auth implements Authenticable, IModule
         if ($userInfo) {
             if (password_verify($data->getPassword(), $userInfo['password'])) {
                 $permissions = $this->storageProvider->fetchUserPermissions($userInfo['id']);
-                $this->user = new User($userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
+                $this->user = new User($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
                 return true;
             }
         }
@@ -116,8 +125,16 @@ class Auth implements Authenticable, IModule
         // TODO: Implement retrieveFromRequest() method.
     }
 
-    public function getUser(): UserModel
+    public function getUser(): ?UserModel
     {
-        return new User();
+        return $this->user;
+    }
+
+    /**
+     * @return AuthLoginProvider
+     */
+    public function getAuthTypeProvider(): AuthLoginProvider
+    {
+        return $this->authTypeProvider;
     }
 }
