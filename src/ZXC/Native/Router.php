@@ -59,6 +59,7 @@ class Router
     )
     {
         $this->serverRequest = $serverRequestFactory->createServerRequest('', '');
+        $this->serverRequest = $this->serverRequest->withAttribute('rid', uniqid());
         $this->response = $responseFactory->createResponse();
         $this->prepare($routeConfig);
     }
