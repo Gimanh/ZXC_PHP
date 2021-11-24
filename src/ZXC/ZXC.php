@@ -45,8 +45,12 @@ class ZXC
             $routeHandlerResult = $this->router->go();
             self::sendResponse($routeHandlerResult);
         } catch (Exception $e) {
+            $response = new Response();
+            $response->getBody()->write(
+                $this->router->getServerRequest()->getAttribute('rid')
+            );
             self::sendResponse(
-                (new Response())->withStatus(500)
+                $response->withStatus(500)
             );
         }
     }
