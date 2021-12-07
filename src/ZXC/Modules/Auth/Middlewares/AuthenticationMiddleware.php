@@ -1,6 +1,6 @@
 <?php
 
-namespace ZXC\Modules\Auth\Middlewares\Authenticate;
+namespace ZXC\Modules\Auth\Middlewares;
 
 class AuthenticationMiddleware
 {

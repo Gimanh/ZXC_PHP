@@ -79,15 +79,29 @@ class DB implements IModule
         return null;
     }
 
-    public function insert(string $query, array $args)
+    public function insert(string $query, array $args, bool $returnStmt = false)
     {
         $stmt = $this->pdo->prepare($query);
-        return $stmt->execute($args);
+        $result = $stmt->execute($args);
+        if ($result && $returnStmt) {
+            return $stmt;
+        }
+        return $result;
     }
 
     public function delete($query, $args)
     {
         $stmt = $this->pdo->prepare($query);
         return $stmt->execute($args);
+    }
+
+    public function select($query, $args)
+    {
+        $stmt = $this->pdo->prepare($query);
+        $status = $stmt->execute($args);
+        if ($status) {
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        return null;
     }
 }

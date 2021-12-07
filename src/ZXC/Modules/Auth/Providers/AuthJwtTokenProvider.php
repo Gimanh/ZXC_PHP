@@ -2,6 +2,7 @@
 
 namespace ZXC\Modules\Auth\Providers;
 
+use ZXC\Modules\Auth\Auth;
 use ZXC\Native\FromGlobals;
 use ZXC\Native\JWT\JWTToken;
 use InvalidArgumentException;
@@ -92,7 +93,7 @@ class AuthJwtTokenProvider implements AuthLoginProvider
 
     public function getLoginType(): string
     {
-        return 'jwt';
+        return Auth::AUTH_TYPE_JWT;
     }
 
     public function updateTokensByRefreshToken(ResponseInterface $response, string $refreshToken = '')
@@ -110,4 +111,16 @@ class AuthJwtTokenProvider implements AuthLoginProvider
         return $response->withStatus(400);
     }
 
+    public function decodeToken($token)
+    {
+        return JWTToken::decode($token, $this->getSecretKey());
+    }
+
+    /**
+     * @return AuthTokenStorage|null
+     */
+    public function getTokenStorage()
+    {
+        return $this->tokenStorage;
+    }
 }

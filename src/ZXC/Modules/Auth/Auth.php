@@ -19,6 +19,7 @@ class Auth implements Authenticable, IModule
 {
     use Module;
 
+    const AUTH_TYPE_JWT = 'jwt';
     /**
      * @var null | AuthStorage
      */
@@ -136,5 +137,13 @@ class Auth implements Authenticable, IModule
     public function getAuthTypeProvider(): AuthLoginProvider
     {
         return $this->authTypeProvider;
+    }
+
+    /**
+     * @return AuthStorage|null
+     */
+    public function getStorageProvider(): ?AuthStorage
+    {
+        return $this->storageProvider;
     }
 }

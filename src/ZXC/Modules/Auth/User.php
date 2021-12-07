@@ -47,11 +47,7 @@ class User implements UserModel
 
     public function getPermissions(): array
     {
-        $result = $this->permissions;
-        foreach ($result as $permission => $data) {
-            $result[$permission] = true;
-        }
-        return $result;
+        return $this->permissions;
     }
 
     public function hasPermissions($permissionName): bool
