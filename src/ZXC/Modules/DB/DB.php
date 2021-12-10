@@ -104,4 +104,26 @@ class DB implements IModule
         }
         return null;
     }
+
+    public function update(array $update)
+    {
+        $args = [];
+        $query = 'UPDATE ' . $update['table'] . PHP_EOL;
+        $query .= 'SET' . PHP_EOL;
+        $fields = [];
+        foreach ($update['data'] as $fieldName => $valueData) {
+            $fields[] = $fieldName . ' = ?';
+            $args[] = $valueData;
+        }
+        $query .= implode(',', $fields) . PHP_EOL;
+        $query .= ' WHERE ' . PHP_EOL;
+        $where = [];
+        foreach ($update['where'] as $fieldWhere => $valueWhere) {
+            $where[] = $fieldWhere . ' = ?';
+            $args[] = $valueWhere;
+        }
+        $query .= implode('AND', $where);
+        $stmt = $this->pdo->prepare($query);
+        return $stmt->execute($args);
+    }
 }
