@@ -21,14 +21,13 @@ class ZXC
      */
     private $router = null;
 
-    public function __construct(string $configPath)
+    public function __construct(array $config)
     {
-        $this->go($configPath);
+        $this->go($config);
     }
 
-    private function prepareConfig(string $configPath)
+    private function prepareConfig(array $config)
     {
-        $config = json_decode(file_get_contents($configPath), true);
         Config::init($config);
         $this->router = new Router(
             new ServerRequestFactory(),
@@ -38,10 +37,10 @@ class ZXC
         Modules::install(Config::get('modules'));
     }
 
-    public function go(string $configPath): void
+    public function go(array $config): void
     {
         try {
-            $this->prepareConfig($configPath);
+            $this->prepareConfig($config);
             $routeHandlerResult = $this->router->go();
             self::sendResponse($routeHandlerResult);
         } catch (Exception $e) {
