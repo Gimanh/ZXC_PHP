@@ -27,7 +27,7 @@ class AuthPgSqlStorage implements AuthStorage
         }
     }
 
-    public function insetUser(RegisterData $registerData): int
+    public function insertUser(RegisterData $registerData): int
     {
         $query = 'INSERT INTO tv_auth.users (login, email, password, confirm_email_code)
                     VALUES (:login, :email, :password, :confirm_email_code) RETURNING id;';
@@ -48,6 +48,17 @@ class AuthPgSqlStorage implements AuthStorage
         $query = 'SELECT * FROM tv_auth.users WHERE login = ?;';
         $stmt = $this->pdo->prepare($query);
         $status = $stmt->execute([$login]);
+        if ($status) {
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+        return false;
+    }
+
+    public function fetchUserById(int $id)
+    {
+        $query = 'SELECT * FROM tv_auth.users WHERE id = ?;';
+        $stmt = $this->pdo->prepare($query);
+        $status = $stmt->execute([$id]);
         if ($status) {
             return $stmt->fetch(PDO::FETCH_ASSOC);
         }

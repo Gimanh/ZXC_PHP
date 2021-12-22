@@ -12,12 +12,14 @@ interface AuthStorage
 
     public function fetchUserByEmail(string $email);
 
-    public function fetchUserPermissions(int $userId):array;
+    public function fetchUserPermissions(int $userId): array;
 
     /**
      * Add user to database
      * @param RegisterData $registerData
      * @return int -1 or inserted user id
      */
-    public function insetUser(RegisterData $registerData): int;
+    public function insertUser(RegisterData $registerData): int;
+
+    public function fetchUserById(int $id);
 }

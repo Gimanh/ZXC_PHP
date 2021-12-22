@@ -84,7 +84,7 @@ class Auth implements Authenticable, IModule
 
     public function register(RegisterData $data)
     {
-        $inserted = $this->storageProvider->insetUser($data);
+        $inserted = $this->storageProvider->insertUser($data);
         if ($inserted === AuthStorage::USER_NOT_INSERTED) {
             return ['registration' => false, 'confirmEmail' => false];
         }
