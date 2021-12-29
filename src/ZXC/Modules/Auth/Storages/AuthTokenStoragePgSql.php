@@ -53,7 +53,9 @@ class AuthTokenStoragePgSql implements AuthTokenStorage
         $exec = $stmt->execute([$rowId]);
         if ($exec) {
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            return $result[0];
+            if (isset($result[0])) {
+                return $result[0];
+            }
         }
         return [];
     }
