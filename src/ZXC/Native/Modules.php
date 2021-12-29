@@ -69,7 +69,7 @@ class Modules
 
         if (!isset(self::$modulesInstances[$moduleName])) {
             return call_user_func_array([
-                self::createInstance(self::$modulesOptions[$moduleName]), 'create'
+                self::createInstance(self::$modulesOptions[self::$modulesName[strtolower($moduleName)]]), 'create'
             ], [$options]);
         }
 
