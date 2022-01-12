@@ -19,6 +19,14 @@ class ZXCConfig
                 $routes = json_decode(file_get_contents($routesFilePath), true);
                 $appConfig['router']['routes'] = array_merge($appConfig['router']['routes'], $routes);
             }
+            $moduleMiddlewareFile = $moduleDirectory . '/middlewares.json';
+            if(file_exists($moduleMiddlewareFile)){
+                $moduleMiddlewares = json_decode(file_get_contents($moduleMiddlewareFile), true);
+                if($moduleMiddlewares){
+                    $appConfig['router']['middlewares'] = array_merge($appConfig['router']['middlewares'], $moduleMiddlewares);
+                }
+
+            }
         }
         return $appConfig;
     }
