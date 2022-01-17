@@ -34,6 +34,7 @@ class AuthInjectUser implements MiddlewareInterface
                 $user = $this->createUserFromAccessToken($matches[1]);
                 if ($user instanceof User) {
                     $request = $request->withAttribute('user', $user);
+                    $this->auth->setUser($user);
                 }
             }
         }
