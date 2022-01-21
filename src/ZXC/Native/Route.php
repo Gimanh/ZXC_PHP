@@ -98,7 +98,7 @@ class Route implements RequestHandlerInterface
 
     public function cleanRoutePath(array $routeParams): array
     {
-        $routeParams['route'] = preg_replace('!\s+!', '', $routeParams['route']);
+        $routeParams['route'] = strtolower(preg_replace('!\s+!', '', $routeParams['route']));
         return $routeParams;
     }
 
