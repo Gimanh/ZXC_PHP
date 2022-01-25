@@ -72,7 +72,7 @@ class Auth implements Authenticable, IModule
         } else {
             $userInfo = $this->storageProvider->fetchUserByLogin($data->getLoginOrEmail());
         }
-        if ($userInfo) {
+        if ($userInfo && $userInfo['block'] === 0) {
             if (password_verify($data->getPassword(), $userInfo['password'])) {
                 $permissions = $this->storageProvider->fetchUserPermissions($userInfo['id']);
                 $this->user = new User($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
