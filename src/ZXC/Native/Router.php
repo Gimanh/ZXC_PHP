@@ -160,7 +160,7 @@ class Router
 
     public function getNormalizedPath(UriInterface $uri): string
     {
-        $path = strtolower($uri->getPath());
+        $path = $uri->getPath();
         $baseRoute = dirname($_SERVER['SCRIPT_NAME']);
         if ($path !== '/' && $baseRoute !== '/') {
             $lastSlash = substr($path, -1);
