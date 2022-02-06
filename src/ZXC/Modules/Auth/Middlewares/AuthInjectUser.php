@@ -56,7 +56,7 @@ class AuthInjectUser implements MiddlewareInterface
                 if ($tokens['access_token'] === $token && $tokenInfo['userData']['id'] === $tokens['user_id']) {
                     $userInfo = $this->auth->getStorageProvider()->fetchUserByLogin($tokenInfo['userData']['login']);
                     $permissions = $this->auth->getStorageProvider()->fetchUserPermissions($userInfo['id']);
-                    return new User($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
+                    return new ($this->auth->getUserClass())($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
                 }
             }
         } catch (Exception $exception) {

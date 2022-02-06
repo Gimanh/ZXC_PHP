@@ -23,12 +23,12 @@ class Auth implements Authenticable, IModule
     /**
      * @var null | AuthStorage
      */
-    protected $storageProvider = null;
+    protected ?AuthStorage $storageProvider = null;
 
     /**
      * @var bool
      */
-    protected $confirmEmail = true;
+    protected bool $confirmEmail = true;
 
     /**
      * Handler which will send code to user
@@ -39,12 +39,14 @@ class Auth implements Authenticable, IModule
     /**
      * @var null | User
      */
-    protected $user = null;
+    protected ?User $user = null;
 
     /**
      * @var null | AuthLoginProvider
      */
-    protected $authTypeProvider = null;
+    protected ?AuthLoginProvider $authTypeProvider = null;
+
+    protected string $userClass = 'ZXC\Modules\Auth\User';
 
     /**
      * @param array $options
@@ -63,6 +65,10 @@ class Auth implements Authenticable, IModule
 
         $this->authTypeProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [])
             ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? []);
+
+        if (isset($options['userClass'])) {
+            $this->userClass = $options['userClass'];
+        }
     }
 
     public function login(LoginData $data)
@@ -75,7 +81,7 @@ class Auth implements Authenticable, IModule
         if ($userInfo && $userInfo['block'] === 0) {
             if (password_verify($data->getPassword(), $userInfo['password'])) {
                 $permissions = $this->storageProvider->fetchUserPermissions($userInfo['id']);
-                $this->user = new User($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
+                $this->user = new $this->userClass($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
                 return true;
             }
         }
@@ -153,5 +159,13 @@ class Auth implements Authenticable, IModule
     public function setUser(?User $user): void
     {
         $this->user = $user;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserClass(): string
+    {
+        return $this->userClass;
     }
 }
