@@ -19,7 +19,7 @@
 
 namespace ZXC\Modules\Mailer\Tx;
 
-use Psr\Log\LoggerInterface;
+use ZXC\Interfaces\Psr\Log\LoggerInterface;
 use ZXC\Modules\Mailer\Tx\Exceptions\CodeException;
 use ZXC\Modules\Mailer\Tx\Exceptions\CryptoException;
 use ZXC\Modules\Mailer\Tx\Exceptions\SMTPException;
