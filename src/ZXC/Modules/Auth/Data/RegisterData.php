@@ -9,35 +9,17 @@ use ZXC\Modules\Auth\Exceptions\PasswordMismatch;
 
 class RegisterData implements AuthenticableData
 {
-    /**
-     * @var string
-     */
-    protected $login = '';
+    protected string $login = '';
 
-    /**
-     * @var string
-     */
-    protected $email = '';
+    protected string $email = '';
 
-    /**
-     * @var string
-     */
-    protected $password = '';
+    protected string $password = '';
 
-    /**
-     * @var string
-     */
-    protected $passwordFirst = '';
+    protected string $passwordFirst = '';
 
-    /**
-     * @var string
-     */
-    protected $passwordSecond = '';
+    protected string $passwordSecond = '';
 
-    /**
-     * @var string
-     */
-    protected $confirmEmailCode = '';
+    protected string $confirmEmailCode = '';
 
     /**
      * @param string $login
@@ -100,5 +82,37 @@ class RegisterData implements AuthenticableData
             'password' => $this->password,
             'confirm_email_code' => $this->confirmEmailCode,
         ];
+    }
+
+    /**
+     * @return string
+     */
+    public function getLogin(): string
+    {
+        return $this->login;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+
+    /**
+     * @return string
+     */
+    public function getConfirmEmailCode(): string
+    {
+        return $this->confirmEmailCode;
     }
 }

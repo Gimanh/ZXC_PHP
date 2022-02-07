@@ -34,7 +34,7 @@ class Auth implements Authenticable, IModule
      * Handler which will send code to user
      * @var null
      */
-    protected $codeProvider = null;
+    protected string $codeProvider = 'ZXC\Modules\Auth\Providers\AuthConfirmCodeProvider';
 
     /**
      * @var null | User
@@ -47,6 +47,10 @@ class Auth implements Authenticable, IModule
     protected ?AuthLoginProvider $authTypeProvider = null;
 
     protected string $userClass = 'ZXC\Modules\Auth\User';
+
+    protected string $confirmUrlTemplate;
+
+    protected string $confirmEmailBody = '{link}';
 
     /**
      * @param array $options
@@ -62,6 +66,10 @@ class Auth implements Authenticable, IModule
         $this->confirmEmail = $options['email']['confirm'] ?? true;
 
         $this->codeProvider = $options['email']['codeProvider'] ?? null;
+
+        $this->confirmUrlTemplate = $options['email']['confirmUrlTemplate'] ?? null;
+
+        $this->confirmEmailBody = $options['email']['body'];
 
         $this->authTypeProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [])
             ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? []);
@@ -95,9 +103,7 @@ class Auth implements Authenticable, IModule
             return ['registration' => false, 'confirmEmail' => false];
         }
         if ($this->confirmEmail && $this->codeProvider) {
-            $codeData = $data->getData();
-            unset($codeData['password']);
-            CallHandler::execHandler($this->codeProvider, [$codeData]);
+            CallHandler::execHandler($this->codeProvider, [$data, $this->confirmUrlTemplate, $this->confirmEmailBody]);
         }
         return ['registration' => true, 'confirmEmail' => $this->confirmEmail && $this->codeProvider];
     }
@@ -167,5 +173,13 @@ class Auth implements Authenticable, IModule
     public function getUserClass(): string
     {
         return $this->userClass;
+    }
+
+    /**
+     * @return string
+     */
+    public function getConfirmUrlTemplate(): string
+    {
+        return $this->confirmUrlTemplate;
     }
 }
