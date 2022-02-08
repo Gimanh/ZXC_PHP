@@ -12,7 +12,7 @@ class AuthenticationRefreshToken extends BaseAuthHandler
     public function __invoke(ServerRequest $request, ResponseInterface $response, RouteParams $routeParams): ResponseInterface
     {
         /** @var $provider AuthJwtTokenProvider */
-        $provider = $this->auth->getAuthTypeProvider();
+        $provider = $this->auth->getAuthProvider();
         return $provider->updateTokensByRefreshToken($response, $request->getParsedBody()['refreshToken']);
     }
 }

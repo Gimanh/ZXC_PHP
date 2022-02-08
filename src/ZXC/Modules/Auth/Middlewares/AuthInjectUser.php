@@ -27,7 +27,7 @@ class AuthInjectUser implements MiddlewareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $loginType = $this->auth->getAuthTypeProvider()->getLoginType();
+        $loginType = $this->auth->getAuthProvider()->getLoginType();
         if ($loginType === Auth::AUTH_TYPE_JWT) {
             $header = $request->getHeaderLine('Authorization');
             if (preg_match('/Bearer\s(\S+)/', $header, $matches)) {
@@ -48,10 +48,10 @@ class AuthInjectUser implements MiddlewareInterface
     public function createUserFromAccessToken($token)
     {
         try {
-            $tokenInfo = $this->auth->getAuthTypeProvider()->decodeToken($token);
+            $tokenInfo = $this->auth->getAuthProvider()->decodeToken($token);
             if (isset($tokenInfo['userData'])) {
                 /** @var AuthJwtTokenProvider $provider */
-                $provider = $this->auth->getAuthTypeProvider();
+                $provider = $this->auth->getAuthProvider();
                 $tokens = $provider->getTokenStorage()->fetchTokens($tokenInfo['id']);
                 if ($tokens['access_token'] === $token && $tokenInfo['userData']['id'] === $tokens['user_id']) {
                     $userInfo = $this->auth->getStorageProvider()->fetchUserByLogin($tokenInfo['userData']['login']);

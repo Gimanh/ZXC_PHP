@@ -49,7 +49,7 @@ class Auth implements Authenticable, IModule
     /**
      * @var null | AuthLoginProvider
      */
-    protected ?AuthLoginProvider $authTypeProvider = null;
+    protected ?AuthLoginProvider $authProvider = null;
 
     /**
      * User class instance of this class will be created
@@ -88,7 +88,7 @@ class Auth implements Authenticable, IModule
 
         $this->blockWithoutEmailConfirm = $options['blockWithoutEmailConfirm'] ?? true;
 
-        $this->authTypeProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [])
+        $this->authProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [])
             ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? []);
 
         if (isset($options['userClass'])) {
@@ -107,7 +107,7 @@ class Auth implements Authenticable, IModule
             if (password_verify($data->getPassword(), $userInfo['password'])) {
                 $permissions = $this->storageProvider->fetchUserPermissions($userInfo['id']);
                 $this->user = new $this->userClass($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
-                return $this->authTypeProvider->login($this->user->getInfo());
+                return $this->authProvider->login($this->user->getInfo());
             }
         }
         return [];
@@ -155,7 +155,7 @@ class Auth implements Authenticable, IModule
     {
         $header = $request->getHeaderLine('Authorization');
         if (preg_match('/Bearer\s(\S+)/', $header, $matches)) {
-            return $this->authTypeProvider->logout($this->user->getId(), $matches[1]);
+            return $this->authProvider->logout($this->user->getId(), $matches[1]);
         }
         return false;
     }
@@ -173,9 +173,9 @@ class Auth implements Authenticable, IModule
     /**
      * @return AuthLoginProvider
      */
-    public function getAuthTypeProvider(): AuthLoginProvider
+    public function getAuthProvider(): AuthLoginProvider
     {
-        return $this->authTypeProvider;
+        return $this->authProvider;
     }
 
     /**
