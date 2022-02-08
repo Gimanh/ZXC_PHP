@@ -6,7 +6,7 @@ interface AuthLoginProvider
 {
     public function __construct(array $config);
 
-    public function provide(array $userData): array;
+    public function login(array $userData): array;
 
     public function getLoginType(): string;
 

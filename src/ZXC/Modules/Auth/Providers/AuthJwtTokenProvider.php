@@ -33,7 +33,7 @@ class AuthJwtTokenProvider implements AuthLoginProvider
         }
     }
 
-    public function provide(array $userData): array
+    public function login(array $userData): array
     {
         $rowId = $this->tokenStorage->initTokenRecord($userData['id'], FromGlobals::getIp());
         $tokens = $this->generateTokens($rowId, $userData);

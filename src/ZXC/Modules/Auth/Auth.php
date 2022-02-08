@@ -107,7 +107,7 @@ class Auth implements Authenticable, IModule
             if (password_verify($data->getPassword(), $userInfo['password'])) {
                 $permissions = $this->storageProvider->fetchUserPermissions($userInfo['id']);
                 $this->user = new $this->userClass($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
-                return $this->authTypeProvider->provide($this->user->getInfo());
+                return $this->authTypeProvider->login($this->user->getInfo());
             }
         }
         return [];
