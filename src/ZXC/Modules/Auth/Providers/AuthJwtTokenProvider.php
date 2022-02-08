@@ -8,7 +8,6 @@ use ZXC\Native\JWT\JWTToken;
 use InvalidArgumentException;
 use ZXC\Modules\Auth\AuthTokenStorage;
 use ZXC\Modules\Auth\AuthLoginProvider;
-use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 
 class AuthJwtTokenProvider implements AuthLoginProvider
 {
@@ -93,7 +92,7 @@ class AuthJwtTokenProvider implements AuthLoginProvider
         return Auth::AUTH_TYPE_JWT;
     }
 
-    public function updateTokensByRefreshToken(ResponseInterface $response, string $refreshToken = '')
+    public function updateTokensByRefreshToken(string $refreshToken = ''): array
     {
         $decoded = JWTToken::decode($refreshToken, $this->getSecretKey());
         $rowId = $decoded['id'];
@@ -102,10 +101,10 @@ class AuthJwtTokenProvider implements AuthLoginProvider
             $newTokens = $this->generateTokens($rowId, $decoded['userData']);
             $updateResult = $this->tokenStorage->updateTokens($newTokens['access'], $newTokens['refresh'], $rowId);
             if ($updateResult) {
-                return $this->addTokensToResponse($response, $newTokens['access'], $newTokens['refresh'], $decoded['userData']);
+                return $this->addTokensToResponse($newTokens['access'], $newTokens['refresh'], $decoded['userData']);
             }
         }
-        return $response->withStatus(400);
+        return [];
     }
 
     public function decodeToken($token)

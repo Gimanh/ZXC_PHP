@@ -13,6 +13,8 @@ class AuthenticationRefreshToken extends BaseAuthHandler
     {
         /** @var $provider AuthJwtTokenProvider */
         $provider = $this->auth->getAuthProvider();
-        return $provider->updateTokensByRefreshToken($response, $request->getParsedBody()['refreshToken']);
+        $refreshResult = $provider->updateTokensByRefreshToken($request->getParsedBody()['refreshToken']);
+        $response->getBody()->write(json_encode($refreshResult));
+        return $response;
     }
 }
