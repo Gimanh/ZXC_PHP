@@ -52,7 +52,7 @@ class Auth implements Authenticable, IModule
     protected ?AuthLoginProvider $authProvider = null;
 
     /**
-     * User class instance of this class will be created
+     * User class instance of this class will be created must extend UserModel
      * @var string
      */
     protected string $userClass = 'ZXC\Modules\Auth\User';
@@ -88,8 +88,8 @@ class Auth implements Authenticable, IModule
 
         $this->blockWithoutEmailConfirm = $options['blockWithoutEmailConfirm'] ?? true;
 
-        $this->authProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [])
-            ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? []);
+        $this->authProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [], $this)
+            ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? [], $this);
 
         if (isset($options['userClass'])) {
             $this->userClass = $options['userClass'];
@@ -160,9 +160,9 @@ class Auth implements Authenticable, IModule
         return false;
     }
 
-    public function retrieveFromRequest(RequestInterface $request): UserModel
+    public function retrieveFromRequest(RequestInterface $request): ?UserModel
     {
-        // TODO: Implement retrieveFromRequest() method.
+        return $this->authProvider->retrieveUserFromRequest($request);
     }
 
     public function getUser(): ?UserModel

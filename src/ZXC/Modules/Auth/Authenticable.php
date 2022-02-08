@@ -29,6 +29,6 @@ interface Authenticable
 
     public function getUser(): ?UserModel;
 
-    public function retrieveFromRequest(RequestInterface $request): UserModel;
+    public function retrieveFromRequest(RequestInterface $request): ?UserModel;
 
 }
