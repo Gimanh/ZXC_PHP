@@ -2,13 +2,10 @@
 
 namespace ZXC\Modules\Auth\Handlers;
 
-use ZXC\Native\Modules;
-use ZXC\Modules\Auth\Auth;
 use ZXC\Native\RouteParams;
 use ZXC\Native\PSR\ServerRequest;
 use ZXC\Modules\Auth\Data\LoginData;
 use ZXC\Modules\Auth\Exceptions\InvalidLogin;
-use ZXC\Modules\Auth\Exceptions\AuthModuleNotFound;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 
 class AuthenticationLogin extends BaseAuthHandler
@@ -24,7 +21,8 @@ class AuthenticationLogin extends BaseAuthHandler
         }
         $loginResult = $this->auth->login($loginData);
         if ($loginResult) {
-            return $this->auth->getAuthTypeProvider()->provide($this->auth->getUser()->getInfo(), $response);
+            $response->getBody()->write(json_encode($loginResult));
+            return $response;
         }
         return $response->withStatus(403);
     }

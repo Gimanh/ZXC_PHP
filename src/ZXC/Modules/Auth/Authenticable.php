@@ -13,7 +13,7 @@ use ZXC\Modules\Auth\Data\ChangeRemindedPasswordData;
 
 interface Authenticable
 {
-    public function login(LoginData $data): bool;
+    public function login(LoginData $data): array;
 
     public function logout(ServerRequest $request): bool;
 

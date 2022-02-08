@@ -96,7 +96,7 @@ class Auth implements Authenticable, IModule
         }
     }
 
-    public function login(LoginData $data): bool
+    public function login(LoginData $data): array
     {
         if ($data->isEmail()) {
             $userInfo = $this->storageProvider->fetchUserByEmail($data->getLoginOrEmail());
@@ -107,10 +107,10 @@ class Auth implements Authenticable, IModule
             if (password_verify($data->getPassword(), $userInfo['password'])) {
                 $permissions = $this->storageProvider->fetchUserPermissions($userInfo['id']);
                 $this->user = new $this->userClass($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
-                return true;
+                return $this->authTypeProvider->provide($this->user->getInfo());
             }
         }
-        return false;
+        return [];
     }
 
     public function register(RegisterData $data): array

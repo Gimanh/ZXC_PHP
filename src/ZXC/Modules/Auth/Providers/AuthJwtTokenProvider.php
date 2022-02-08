@@ -12,10 +12,9 @@ use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 
 class AuthJwtTokenProvider implements AuthLoginProvider
 {
-    protected $config = [];
+    protected array $config = [];
 
-    /** @var null | AuthTokenStorage */
-    protected $tokenStorage = null;
+    protected ?AuthTokenStorage $tokenStorage = null;
 
     public function __construct(array $config)
     {
@@ -34,16 +33,15 @@ class AuthJwtTokenProvider implements AuthLoginProvider
         }
     }
 
-    public function provide(array $userData, ResponseInterface $response): ResponseInterface
+    public function provide(array $userData): array
     {
-        $response = $response->withHeader('Content-Type', 'application/json');
         $rowId = $this->tokenStorage->initTokenRecord($userData['id'], FromGlobals::getIp());
         $tokens = $this->generateTokens($rowId, $userData);
         $updateResult = $this->tokenStorage->updateTokens($tokens['access'], $tokens['refresh'], $rowId);
         if ($updateResult) {
-            return $this->addTokensToResponse($response, $tokens['access'], $tokens['refresh'], $userData);
+            return $this->addTokensToResponse($tokens['access'], $tokens['refresh'], $userData);
         }
-        return $response->withStatus(400);
+        return [];
     }
 
     protected function generateTokens(int $rowId, array $userData): array
@@ -65,15 +63,14 @@ class AuthJwtTokenProvider implements AuthLoginProvider
         return ['access' => $accessToken, 'refresh' => $refreshToken];
     }
 
-    protected function addTokensToResponse(ResponseInterface $response, $access, $refresh, $userData): ResponseInterface
+    protected function addTokensToResponse($access, $refresh, $userData): array
     {
-        $response->getBody()->write(json_encode([
+        return [
             'access' => $access,
             'refresh' => $refresh,
             'type' => $this->getLoginType(),
             'userData' => $userData,
-        ]));
-        return $response;
+        ];
     }
 
     protected function getAccessExpireTime(): int
