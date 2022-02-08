@@ -7,9 +7,9 @@ use ZXC\Modules\Auth\Exceptions\InvalidConfirmEmailArgs;
 class ConfirmEmailData implements AuthenticableData
 {
 
-    protected $login = '';
+    protected string $login = '';
 
-    protected $code = '';
+    protected string $code = '';
 
     /**
      * @param string $login
@@ -42,5 +42,21 @@ class ConfirmEmailData implements AuthenticableData
             'login' => $this->login,
             'code' => $this->code,
         ];
+    }
+
+    /**
+     * @return string
+     */
+    public function getLogin(): string
+    {
+        return $this->login;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCode(): string
+    {
+        return $this->code;
     }
 }

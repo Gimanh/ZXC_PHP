@@ -56,6 +56,7 @@ class AuthenticationRegistration
     public function getRegistrationData(ServerRequest $request)
     {
         $body = $request->getParsedBody();
-        return new RegisterData($body['login'], $body['email'], $body['password'], $body['passwordRepeat']);
+        $block = $this->auth->isBlockWithoutEmailConfirm() ? 1 : 0;
+        return new RegisterData($body['login'], $body['email'], $body['password'], $body['passwordRepeat'], $block);
     }
 }

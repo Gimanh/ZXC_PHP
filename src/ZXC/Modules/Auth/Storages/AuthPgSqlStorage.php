@@ -29,8 +29,8 @@ class AuthPgSqlStorage implements AuthStorage
 
     public function insertUser(RegisterData $registerData): int
     {
-        $query = 'INSERT INTO tv_auth.users (login, email, password, confirm_email_code)
-                    VALUES (:login, :email, :password, :confirm_email_code) RETURNING id;';
+        $query = 'INSERT INTO tv_auth.users (login, email, password, confirm_email_code, block)
+                    VALUES (:login, :email, :password, :confirm_email_code, :block) RETURNING id;';
         $stmt = $this->pdo->prepare($query);
 
         try {
@@ -43,7 +43,7 @@ class AuthPgSqlStorage implements AuthStorage
         return $result['id'];
     }
 
-    public function fetchUserByLogin(string $login)
+    public function fetchUserByLogin(string $login): array|false
     {
         $query = 'SELECT * FROM tv_auth.users WHERE login = ?;';
         $stmt = $this->pdo->prepare($query);
@@ -54,7 +54,7 @@ class AuthPgSqlStorage implements AuthStorage
         return false;
     }
 
-    public function fetchUserById(int $id)
+    public function fetchUserById(int $id): array|false
     {
         $query = 'SELECT * FROM tv_auth.users WHERE id = ?;';
         $stmt = $this->pdo->prepare($query);
@@ -65,7 +65,7 @@ class AuthPgSqlStorage implements AuthStorage
         return false;
     }
 
-    public function fetchUserByEmail(string $email)
+    public function fetchUserByEmail(string $email): array|false
     {
         $query = 'SELECT * FROM tv_auth.users WHERE email = ?;';
         $stmt = $this->pdo->prepare($query);
@@ -91,5 +91,13 @@ class AuthPgSqlStorage implements AuthStorage
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         return [];
+    }
+
+    public function confirmEmail(string $login, string $code, int $block): bool
+    {
+        $query = 'UPDATE tv_auth.users SET confirm_email_code = NULL, block = ? WHERE login = ? AND confirm_email_code = ?';
+        $stmt = $this->pdo->prepare($query);
+        $result = $stmt->execute([$block, $login, $code]);
+        return !!$result;
     }
 }

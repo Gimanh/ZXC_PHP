@@ -8,9 +8,9 @@ interface AuthStorage
 {
     const USER_NOT_INSERTED = -1;
 
-    public function fetchUserByLogin(string $login);
+    public function fetchUserByLogin(string $login): array|false;
 
-    public function fetchUserByEmail(string $email);
+    public function fetchUserByEmail(string $email): array|false;
 
     public function fetchUserPermissions(int $userId): array;
 
@@ -21,5 +21,7 @@ interface AuthStorage
      */
     public function insertUser(RegisterData $registerData): int;
 
-    public function fetchUserById(int $id);
+    public function fetchUserById(int $id): array|false;
+
+    public function confirmEmail(string $login, string $code, int $block): bool;
 }

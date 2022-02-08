@@ -21,6 +21,8 @@ class RegisterData implements AuthenticableData
 
     protected string $confirmEmailCode = '';
 
+    protected int $block = 0;
+
     /**
      * @param string $login
      * @param string $email
@@ -35,11 +37,13 @@ class RegisterData implements AuthenticableData
         string $login,
         string $email,
         string $passwordFirst,
-        string $passwordSecond
+        string $passwordSecond,
+        int    $block
     )
     {
         $this->login = $login;
         $this->email = $email;
+        $this->block = $block;
         $this->passwordFirst = $passwordFirst;
         $this->passwordSecond = $passwordSecond;
         $this->validate();
@@ -80,6 +84,7 @@ class RegisterData implements AuthenticableData
             'login' => $this->login,
             'email' => $this->email,
             'password' => $this->password,
+            'block' => $this->block,
             'confirm_email_code' => $this->confirmEmailCode,
         ];
     }

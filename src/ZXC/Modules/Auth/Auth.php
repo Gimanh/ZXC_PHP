@@ -19,6 +19,10 @@ class Auth implements Authenticable, IModule
 {
     use Module;
 
+    const USER_BLOCKED = 1;
+
+    const USER_UNBLOCKED = 0;
+
     const AUTH_TYPE_JWT = 'jwt';
     /**
      * @var null | AuthStorage
@@ -26,13 +30,13 @@ class Auth implements Authenticable, IModule
     protected ?AuthStorage $storageProvider = null;
 
     /**
+     * If true confirm email will be sent to user email
      * @var bool
      */
     protected bool $confirmEmail = true;
 
     /**
-     * Handler which will send code to user
-     * @var null
+     * Handler which will send code to user email
      */
     protected string $codeProvider = 'ZXC\Modules\Auth\Providers\AuthConfirmCodeProvider';
 
@@ -46,11 +50,21 @@ class Auth implements Authenticable, IModule
      */
     protected ?AuthLoginProvider $authTypeProvider = null;
 
+    /**
+     * User class instance of this class will be created
+     * @var string
+     */
     protected string $userClass = 'ZXC\Modules\Auth\User';
 
     protected string $confirmUrlTemplate;
 
     protected string $confirmEmailBody = '{link}';
+
+    /**
+     * If true user will be blocked after registration before email will be confirmed
+     * @var bool
+     */
+    protected bool $blockWithoutEmailConfirm = true;
 
     /**
      * @param array $options
@@ -71,6 +85,8 @@ class Auth implements Authenticable, IModule
 
         $this->confirmEmailBody = $options['email']['body'];
 
+        $this->blockWithoutEmailConfirm = $options['blockWithoutEmailConfirm'] ?? true;
+
         $this->authTypeProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [])
             ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? []);
 
@@ -79,14 +95,14 @@ class Auth implements Authenticable, IModule
         }
     }
 
-    public function login(LoginData $data)
+    public function login(LoginData $data): bool
     {
         if ($data->isEmail()) {
             $userInfo = $this->storageProvider->fetchUserByEmail($data->getLoginOrEmail());
         } else {
             $userInfo = $this->storageProvider->fetchUserByLogin($data->getLoginOrEmail());
         }
-        if ($userInfo && $userInfo['block'] === 0) {
+        if ($userInfo && $userInfo['block'] === Auth::USER_UNBLOCKED) {
             if (password_verify($data->getPassword(), $userInfo['password'])) {
                 $permissions = $this->storageProvider->fetchUserPermissions($userInfo['id']);
                 $this->user = new $this->userClass($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
@@ -96,7 +112,7 @@ class Auth implements Authenticable, IModule
         return false;
     }
 
-    public function register(RegisterData $data)
+    public function register(RegisterData $data): array
     {
         $inserted = $this->storageProvider->insertUser($data);
         if ($inserted === AuthStorage::USER_NOT_INSERTED) {
@@ -108,9 +124,15 @@ class Auth implements Authenticable, IModule
         return ['registration' => true, 'confirmEmail' => $this->confirmEmail && $this->codeProvider];
     }
 
-    public function confirmEmail(ConfirmEmailData $data)
+    public function confirmEmail(ConfirmEmailData $data): bool
     {
-        // TODO: Implement confirmEmail() method.
+        $user = $this->storageProvider->fetchUserByLogin($data->getLogin());
+        if ($user) {
+            if ($user['login'] === $data->getLogin() && $user['confirm_email_code'] === $data->getCode()) {
+                return $this->storageProvider->confirmEmail($data->getLogin(), $data->getCode(), Auth::USER_UNBLOCKED);
+            }
+        }
+        return false;
     }
 
     public function remindPassword(RemindPasswordData $data)
@@ -181,5 +203,13 @@ class Auth implements Authenticable, IModule
     public function getConfirmUrlTemplate(): string
     {
         return $this->confirmUrlTemplate;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isBlockWithoutEmailConfirm(): bool
+    {
+        return $this->blockWithoutEmailConfirm;
     }
 }

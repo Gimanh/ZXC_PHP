@@ -11,24 +11,11 @@ use ZXC\Modules\Auth\Exceptions\InvalidLogin;
 use ZXC\Modules\Auth\Exceptions\AuthModuleNotFound;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 
-class AuthenticationLogin
+class AuthenticationLogin extends BaseAuthHandler
 {
     /**
-     * @var null | Auth
+     * @throws InvalidLogin
      */
-    protected $auth = null;
-
-    /**
-     * @throws AuthModuleNotFound
-     */
-    public function __construct()
-    {
-        $this->auth = Modules::get('auth');
-        if (!$this->auth) {
-            throw new AuthModuleNotFound();
-        }
-    }
-
     public function __invoke(ServerRequest $request, ResponseInterface $response, RouteParams $routeParams): ResponseInterface
     {
         $loginData = $this->getLoginData($request);
@@ -39,19 +26,19 @@ class AuthenticationLogin
         if ($loginResult) {
             return $this->auth->getAuthTypeProvider()->provide($this->auth->getUser()->getInfo(), $response);
         }
-        return $response->withStatus(400);
+        return $response->withStatus(403);
     }
 
     /**
-     * @return false | LoginData
      * @throws InvalidLogin
      */
-    public function getLoginData(ServerRequest $request)
+    public function getLoginData(ServerRequest $request): LoginData|false
     {
         $body = $request->getParsedBody();
         if (!isset($body['login']) || !isset($body['password'])) {
             return false;
         }
+
         return new LoginData($body['login'], $body['password']);
     }
 }

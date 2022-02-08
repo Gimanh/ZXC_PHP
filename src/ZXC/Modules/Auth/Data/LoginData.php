@@ -10,18 +10,18 @@ class LoginData implements AuthenticableData
      * User login or email
      * @var string
      */
-    protected $loginOrEmail = '';
+    protected string $loginOrEmail = '';
 
     /**
      * User password
      * @var string
      */
-    protected $password = '';
+    protected string $password = '';
 
     /**
      * @var bool
      */
-    protected $rememberMe = false;
+    protected bool $rememberMe = false;
 
     /**
      * @param string $loginOrEmail
