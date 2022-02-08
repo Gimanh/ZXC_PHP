@@ -3,7 +3,6 @@
 namespace ZXC\Modules\Auth\Providers;
 
 use Exception;
-use ZXC\Native\Modules;
 use ZXC\Modules\Auth\Auth;
 use ZXC\Native\FromGlobals;
 use ZXC\Native\JWT\JWTToken;
