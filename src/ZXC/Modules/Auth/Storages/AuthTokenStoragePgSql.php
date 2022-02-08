@@ -60,8 +60,9 @@ class AuthTokenStoragePgSql implements AuthTokenStorage
         return [];
     }
 
-    public function deleteTokens(int $rowId): bool
+    public function deleteTokens(int $userId, string $accessToken): bool
     {
-        // TODO: Implement deleteTokens() method.
+        $query = 'DELETE FROM tv_auth.user_tokens WHERE user_id = ? AND access_token = ?;';
+        return $this->db->delete($query, [$userId, $accessToken]);
     }
 }

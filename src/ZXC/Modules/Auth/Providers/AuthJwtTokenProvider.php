@@ -123,4 +123,9 @@ class AuthJwtTokenProvider implements AuthLoginProvider
     {
         return $this->tokenStorage;
     }
+
+    public function logout(int $userId, string $token): bool
+    {
+        return $this->tokenStorage->deleteTokens($userId, $token);
+    }
 }

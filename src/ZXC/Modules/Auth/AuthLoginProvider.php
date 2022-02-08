@@ -11,4 +11,6 @@ interface AuthLoginProvider
     public function provide(array $userData, ResponseInterface $response): ResponseInterface;
 
     public function getLoginType(): string;
+
+    public function logout(int $userId, string $token): bool;
 }

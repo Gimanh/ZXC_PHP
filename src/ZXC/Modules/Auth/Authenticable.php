@@ -2,6 +2,7 @@
 
 namespace ZXC\Modules\Auth;
 
+use ZXC\Native\PSR\ServerRequest;
 use ZXC\Modules\Auth\Data\LoginData;
 use ZXC\Modules\Auth\Data\RegisterData;
 use ZXC\Modules\Auth\Data\ConfirmEmailData;
@@ -14,7 +15,7 @@ interface Authenticable
 {
     public function login(LoginData $data): bool;
 
-    public function logout();
+    public function logout(ServerRequest $request): bool;
 
     public function register(RegisterData $data): array;
 

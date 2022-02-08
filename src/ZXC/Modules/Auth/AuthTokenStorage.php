@@ -10,5 +10,5 @@ interface AuthTokenStorage
 
     public function fetchTokens(int $rowId): array;
 
-    public function deleteTokens(int $rowId): bool;
+    public function deleteTokens(int $userId, string $accessToken): bool;
 }

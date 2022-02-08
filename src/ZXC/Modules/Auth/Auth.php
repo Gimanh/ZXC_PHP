@@ -2,9 +2,10 @@
 
 namespace ZXC\Modules\Auth;
 
-use ZXC\Native\CallHandler;
 use ZXC\Traits\Module;
+use ZXC\Native\CallHandler;
 use ZXC\Interfaces\IModule;
+use ZXC\Native\PSR\ServerRequest;
 use ZXC\Modules\Auth\Data\LoginData;
 use ZXC\Modules\Auth\Data\RegisterData;
 use ZXC\Modules\Auth\Data\ConfirmEmailData;
@@ -150,9 +151,13 @@ class Auth implements Authenticable, IModule
         // TODO: Implement changePassword() method.
     }
 
-    public function logout()
+    public function logout(ServerRequest $request): bool
     {
-        // TODO: Implement logout() method.
+        $header = $request->getHeaderLine('Authorization');
+        if (preg_match('/Bearer\s(\S+)/', $header, $matches)) {
+            return $this->authTypeProvider->logout($this->user->getId(), $matches[1]);
+        }
+        return false;
     }
 
     public function retrieveFromRequest(RequestInterface $request): UserModel
