@@ -2,14 +2,11 @@
 
 namespace ZXC\Modules\Auth\Middlewares;
 
-use Exception;
-use ZXC\Modules\Auth\UserModel;
 use ZXC\Native\Modules;
 use ZXC\Modules\Auth\Auth;
-use ZXC\Modules\Auth\User;
 use ZXC\Interfaces\IModule;
+use ZXC\Modules\Auth\UserModel;
 use ZXC\Interfaces\Psr\Server\MiddlewareInterface;
-use ZXC\Modules\Auth\Providers\AuthJwtTokenProvider;
 use ZXC\Interfaces\Psr\Server\RequestHandlerInterface;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 use ZXC\Interfaces\Psr\Http\Message\ServerRequestInterface;
