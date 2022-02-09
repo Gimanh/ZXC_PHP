@@ -6,5 +6,5 @@ use Exception;
 
 class InvalidRemindPasswordArgs extends Exception
 {
-    protected $message = 'Invalid arguments for remind password.';
+    protected $message = 'Invalid arguments "email" for remind password.';
 }

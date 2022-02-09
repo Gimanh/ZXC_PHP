@@ -7,13 +7,13 @@ use ZXC\Modules\Auth\Exceptions\InvalidChangeRemindedPasswordArgs;
 class ChangeRemindedPasswordData implements AuthenticableData
 {
 
-    protected $login = '';
+    protected string $login = '';
 
-    protected $code = '';
+    protected string $code = '';
 
-    protected $firstNewPassword = '';
+    protected string $firstNewPassword = '';
 
-    protected $confirmFirstPassword = '';
+    protected string $confirmFirstPassword = '';
 
     /**
      * @param string $login
@@ -50,5 +50,29 @@ class ChangeRemindedPasswordData implements AuthenticableData
             'code' => $this->code,
             'password' => $this->firstNewPassword,
         ];
+    }
+
+    /**
+     * @return string
+     */
+    public function getLogin(): string
+    {
+        return $this->login;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCode(): string
+    {
+        return $this->code;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPassword(): string
+    {
+        return $this->firstNewPassword;
     }
 }

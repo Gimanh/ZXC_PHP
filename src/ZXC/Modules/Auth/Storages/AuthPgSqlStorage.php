@@ -100,4 +100,30 @@ class AuthPgSqlStorage implements AuthStorage
         $result = $stmt->execute([$block, $login, $code]);
         return !!$result;
     }
+
+
+    public function setReminderCodeAndTime(string $email, ?string $code, ?int $time): bool
+    {
+        if ($email) {
+            if ($code === null && $time === null) {
+                $query = 'UPDATE tv_auth.users SET remind_password_code = NULL, remind_password_time = NULL WHERE email = ?';
+                $args = [$email];
+            } else {
+                $query = 'UPDATE tv_auth.users SET remind_password_code = ?, remind_password_time = ? WHERE email = ?';
+                $args = [$code, $time, $email];
+            }
+            $stmt = $this->pdo->prepare($query);
+            $result = $stmt->execute($args);
+            return !!$result;
+        }
+        return false;
+    }
+
+    public function updateUserPassword(string $password, int $userId): bool
+    {
+        $query = 'UPDATE tv_auth.users SET password = ? WHERE id = ?';
+        $stmt = $this->pdo->prepare($query);
+        $result = $stmt->execute([$password, $userId]);
+        return !!$result;
+    }
 }

@@ -24,4 +24,8 @@ interface AuthStorage
     public function fetchUserById(int $id): array|false;
 
     public function confirmEmail(string $login, string $code, int $block): bool;
+
+    public function setReminderCodeAndTime(string $email, ?string $code, ?int $time): bool;
+
+    public function updateUserPassword(string $password, int $userId): bool;
 }

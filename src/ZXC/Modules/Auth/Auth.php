@@ -2,6 +2,7 @@
 
 namespace ZXC\Modules\Auth;
 
+use ZXC\Modules\Auth\Providers\AuthSendReminderLink;
 use ZXC\Traits\Module;
 use ZXC\Native\CallHandler;
 use ZXC\Interfaces\IModule;
@@ -67,6 +68,14 @@ class Auth implements Authenticable, IModule
      */
     protected bool $blockWithoutEmailConfirm = true;
 
+    protected int $remindPasswordInterval = 2;
+
+    protected string $remindPasswordLinkTemplate = '/new/password/{code}/{login}';
+
+    protected string $remindPasswordEmailBody = '{link}';
+
+    protected string $remindPasswordLinkProvider = 'ZXC\Modules\Auth\Providers\AuthSendReminderLink';
+
     /**
      * @param array $options
      * @throws InvalidAuthConfig
@@ -87,6 +96,14 @@ class Auth implements Authenticable, IModule
         $this->confirmEmailBody = $options['email']['body'];
 
         $this->blockWithoutEmailConfirm = $options['blockWithoutEmailConfirm'] ?? true;
+
+        $this->remindPasswordInterval = $options['remindPasswordInterval'] ?? 2;
+
+        $this->remindPasswordLinkTemplate = $options['remindPasswordLinkTemplate'] ?? '/new/password/{code}/{login}';
+
+        $this->remindPasswordLinkProvider = $options['remindPasswordLinkProvider'] ?? 'ZXC\Modules\Auth\Providers\AuthSendReminderLink';
+
+        $this->remindPasswordEmailBody = $options['remindPasswordEmailBody'] ?? '{link}';
 
         $this->authProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [], $this)
             ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? [], $this);
@@ -136,14 +153,56 @@ class Auth implements Authenticable, IModule
         return false;
     }
 
-    public function remindPassword(RemindPasswordData $data)
+    public function remindPassword(RemindPasswordData $data): bool
     {
-        // TODO: Implement remindPassword() method.
+        $user = $this->storageProvider->fetchUserByEmail($data->getEmail());
+        if ($user) {
+            if (!isset($user['remind_password_code']) && !isset($user['remind_password_time'])) {
+                $saveResult = $this->storageProvider->setReminderCodeAndTime($data->getEmail(), $data->getCode(), $data->getTime());
+                if ($saveResult) {
+                    $saveResult = call_user_func_array(new $this->remindPasswordLinkProvider, [
+                        $data->getEmail(),
+                        $this->remindPasswordLinkTemplate,
+                        $this->remindPasswordEmailBody,
+                        $data->getCode(),
+                        $user['login']
+                    ]);
+                }
+                return $saveResult;
+            }
+            if (isset($user['remind_password_code']) && isset($user['remind_password_time'])) {
+                if ($user['remind_password_time'] + ($this->remindPasswordInterval * 60) < time()) {
+                    $saveResult = $this->storageProvider->setReminderCodeAndTime($data->getEmail(), $data->getCode(), $data->getTime());
+                    if ($saveResult) {
+                        $saveResult = call_user_func_array(new $this->remindPasswordLinkProvider, [
+                            $data->getEmail(),
+                            $this->remindPasswordLinkTemplate,
+                            $this->remindPasswordEmailBody,
+                            $data->getCode(),
+                            $user['login']
+                        ]);
+                    }
+                    return $saveResult;
+                }
+            }
+        }
+        return false;
     }
 
-    public function changeRemindedPassword(ChangeRemindedPasswordData $data)
+    public function changeRemindedPassword(ChangeRemindedPasswordData $data): bool
     {
-        // TODO: Implement changeRemindedPassword() method.
+        $user = $this->storageProvider->fetchUserByLogin($data->getLogin());
+        if ($user) {
+            if ($user['remind_password_code'] === $data->getCode()) {
+                $password = password_hash($data->getPassword(), PASSWORD_BCRYPT, ['cost' => 10]);
+                $updateResult = $this->storageProvider->updateUserPassword($password, $user['id']);
+                if ($updateResult) {
+                    $this->storageProvider->setReminderCodeAndTime($user['email'], null, null);
+                }
+                return $updateResult;
+            }
+        }
+        return false;
     }
 
     public function changePassword(ChangePasswordData $data)

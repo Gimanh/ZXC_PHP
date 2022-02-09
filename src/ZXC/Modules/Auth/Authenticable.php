@@ -21,9 +21,9 @@ interface Authenticable
 
     public function confirmEmail(ConfirmEmailData $data): bool;
 
-    public function remindPassword(RemindPasswordData $data);
+    public function remindPassword(RemindPasswordData $data): bool;
 
-    public function changeRemindedPassword(ChangeRemindedPasswordData $data);
+    public function changeRemindedPassword(ChangeRemindedPasswordData $data): bool;
 
     public function changePassword(ChangePasswordData $data);
 
