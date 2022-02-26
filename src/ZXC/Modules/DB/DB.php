@@ -89,12 +89,22 @@ class DB implements IModule
         return $result;
     }
 
+    /**
+     * @param $query
+     * @param $args
+     * @return bool
+     */
     public function delete($query, $args)
     {
         $stmt = $this->pdo->prepare($query);
         return $stmt->execute($args);
     }
 
+    /**
+     * @param $query
+     * @param $args
+     * @return array|null
+     */
     public function select($query, $args)
     {
         $stmt = $this->pdo->prepare($query);
@@ -105,6 +115,10 @@ class DB implements IModule
         return null;
     }
 
+    /**
+     * @param array $update
+     * @return bool
+     */
     public function update(array $update)
     {
         $args = [];
