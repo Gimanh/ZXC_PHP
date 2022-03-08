@@ -205,6 +205,10 @@ class Auth implements Authenticable, IModule
         return false;
     }
 
+    /**
+     * @param ChangePasswordData $data
+     * @return void
+     */
     public function changePassword(ChangePasswordData $data)
     {
         // TODO: Implement changePassword() method.
