@@ -210,6 +210,10 @@ class Auth implements Authenticable, IModule
         // TODO: Implement changePassword() method.
     }
 
+    /**
+     * @param ServerRequest $request
+     * @return bool
+     */
     public function logout(ServerRequest $request): bool
     {
         $header = $request->getHeaderLine('Authorization');
@@ -219,11 +223,18 @@ class Auth implements Authenticable, IModule
         return false;
     }
 
+    /**
+     * @param RequestInterface $request
+     * @return UserModel|null
+     */
     public function retrieveFromRequest(RequestInterface $request): ?UserModel
     {
         return $this->authProvider->retrieveUserFromRequest($request);
     }
 
+    /**
+     * @return UserModel|null
+     */
     public function getUser(): ?UserModel
     {
         return $this->user;
