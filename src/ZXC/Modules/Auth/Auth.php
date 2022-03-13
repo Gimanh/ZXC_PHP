@@ -2,7 +2,6 @@
 
 namespace ZXC\Modules\Auth;
 
-use ZXC\Modules\Auth\Providers\AuthSendReminderLink;
 use ZXC\Traits\Module;
 use ZXC\Native\CallHandler;
 use ZXC\Interfaces\IModule;
