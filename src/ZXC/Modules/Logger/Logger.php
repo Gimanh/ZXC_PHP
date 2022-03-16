@@ -50,7 +50,10 @@ class Logger extends AbstractLogger implements LoggerInterface, IModule
         $this->folder = $options['folder'] ?? sys_get_temp_dir();
         $this->template = $options['template'] ?? "{date} | {level} | {ip} | {message} | {context}";
         $this->mode = $options['mode'] ?? 'day';
+    }
 
+    public function updateLogFullPath()
+    {
         if ($this->mode === 'day') {
             $this->logFileName .= date('Ymd') . '.log';
         } else {
@@ -69,6 +72,7 @@ class Logger extends AbstractLogger implements LoggerInterface, IModule
 
     public function log($level, $message, array $context = []): void
     {
+        $this->updateLogFullPath();
         if ($this->lvlToValue[$level] <= $this->lvlToValue[$this->level]) {
             file_put_contents($this->fullPath, trim(strtr($this->template, [
                     '{date}' => $this->getDate(),
