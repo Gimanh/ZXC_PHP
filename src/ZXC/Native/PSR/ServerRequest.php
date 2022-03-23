@@ -74,7 +74,7 @@ class ServerRequest extends Request implements ServerRequestInterface
             $uri = $this->getUriString();
         }
         if (!$method) {
-            $method = $server['REQUEST_METHOD'];
+            $method = $server['REQUEST_METHOD'] ?? '';
         }
         $headers = $this->getPsrServerHeaders();
         $body = 'php://memory';
