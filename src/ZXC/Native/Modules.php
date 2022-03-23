@@ -87,7 +87,7 @@ class Modules
     {
         $instance = self::createInstanceOfClass($params->getClass());
         if (!$instance instanceof IModule) {
-            throw new RuntimeException('Module ' . $params['class'] . ' must implement \'ZXC\Interfaces\Module\'');
+            throw new RuntimeException('Module ' . $params->getClass() . ' must implement \'ZXC\Interfaces\Module\'');
         }
         $instance->init($params->getOptions());
         return $instance;

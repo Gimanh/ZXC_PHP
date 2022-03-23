@@ -41,16 +41,22 @@ class ZXC
     {
         try {
             $this->prepareConfig($config);
-            $routeHandlerResult = $this->router->go();
-            self::sendResponse($routeHandlerResult);
+            if (PHP_SAPI !== 'cli') {
+                $routeHandlerResult = $this->router->go();
+                self::sendResponse($routeHandlerResult);
+            }
         } catch (Exception $e) {
-            $response = new Response();
-            $response->getBody()->write(
-                $this->router->getServerRequest()->getAttribute('rid')
-            );
-            self::sendResponse(
-                $response->withStatus(500)
-            );
+            if (PHP_SAPI !== 'cli') {
+                $response = new Response();
+                $response->getBody()->write(
+                    $this->router->getServerRequest()->getAttribute('rid')
+                );
+                self::sendResponse(
+                    $response->withStatus(500)
+                );
+            } else {
+                echo $e->getMessage();
+            }
         }
     }
 
