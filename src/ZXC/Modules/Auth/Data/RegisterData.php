@@ -120,4 +120,12 @@ class RegisterData implements AuthenticableData
     {
         return $this->confirmEmailCode;
     }
+
+    /**
+     * @return int
+     */
+    public function getBlock(): int
+    {
+        return $this->block;
+    }
 }
