@@ -47,7 +47,7 @@ class RegisterData implements AuthenticableData
         $this->passwordFirst = $passwordFirst;
         $this->passwordSecond = $passwordSecond;
         $this->validate();
-        $this->password = password_hash($this->passwordFirst, PASSWORD_BCRYPT, ['cost' => 10]);
+        $this->password = self::passwordHash($this->passwordFirst);
         $this->confirmEmailCode = md5(uniqid(rand(), true));
     }
 
@@ -127,5 +127,10 @@ class RegisterData implements AuthenticableData
     public function getBlock(): int
     {
         return $this->block;
+    }
+
+    public static function passwordHash($password)
+    {
+        return password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
     }
 }
