@@ -2,6 +2,7 @@
 
 namespace ZXC\Modules\Auth;
 
+use ZXC\Modules\Auth\Storages\AuthPgSqlStorage;
 use ZXC\Traits\Module;
 use ZXC\Native\CallHandler;
 use ZXC\Interfaces\IModule;
@@ -82,9 +83,10 @@ class Auth implements Authenticable, IModule
     public function init(array $options = [])
     {
         if (!isset($options['storageProvider'])) {
-            throw new InvalidAuthConfig('Can not get property "storageProvider".');
+            $this->storageProvider = new AuthPgSqlStorage();
+        } else {
+            $this->storageProvider = new $options['storageProvider']();
         }
-        $this->storageProvider = new $options['storageProvider']();
 
         $this->confirmEmail = $options['email']['confirm'] ?? true;
 
