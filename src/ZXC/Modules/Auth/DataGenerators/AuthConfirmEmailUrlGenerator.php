@@ -1,6 +1,6 @@
 <?php
 
-namespace ZXC\Modules\Auth;
+namespace ZXC\Modules\Auth\DataGenerators;
 
 interface AuthConfirmEmailUrlGenerator
 {

@@ -70,9 +70,9 @@ class Auth implements Authenticable, IModule
 
     protected int $remindPasswordInterval = 2;
 
-    protected string $remindPasswordLinkTemplate = '/new/password/{code}/{login}';
+    protected string $remindPasswordUrlGenerator = 'ZXC\Modules\Auth\DataGenerators\AuthRemindUrlGenerator';
 
-    protected string $remindPasswordEmailBody = '{link}';
+    protected string $remindPasswordEmailBodyGenerator = 'ZXC\Modules\Auth\DataGenerators\AuthRemindBodyGenerator';
 
     protected string $remindPasswordLinkProvider = 'ZXC\Modules\Auth\Providers\AuthSendReminderLink';
 
@@ -100,11 +100,11 @@ class Auth implements Authenticable, IModule
 
         $this->remindPasswordInterval = $options['remindPasswordInterval'] ?? 2;
 
-        $this->remindPasswordLinkTemplate = $options['remindPasswordLinkTemplate'] ?? '/new/password/{code}/{login}';
+        $this->remindPasswordUrlGenerator = $options['remindPasswordUrlGenerator'] ?? 'ZXC\Modules\Auth\DataGenerators\AuthRemindUrlGenerator';
 
         $this->remindPasswordLinkProvider = $options['remindPasswordLinkProvider'] ?? 'ZXC\Modules\Auth\Providers\AuthSendReminderLink';
 
-        $this->remindPasswordEmailBody = $options['remindPasswordEmailBody'] ?? '{link}';
+        $this->remindPasswordEmailBodyGenerator = $options['remindPasswordEmailBodyGenerator'] ?? 'ZXC\Modules\Auth\DataGenerators\AuthRemindBodyGenerator';
 
         $this->authProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [], $this)
             ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? [], $this);
@@ -154,36 +154,40 @@ class Auth implements Authenticable, IModule
         return false;
     }
 
+    public function canSendReminder(array $userData): bool
+    {
+        if (!isset($user['remind_password_code']) && !isset($user['remind_password_time'])) {
+            return true;
+        }
+        if (isset($user['remind_password_code']) && isset($user['remind_password_time'])) {
+            if ($user['remind_password_time'] + ($this->remindPasswordInterval * 60) < time()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function getReminderLinkProviderInstance(string $login, string $code, string $email)
+    {
+        return new $this->remindPasswordLinkProvider(
+            new $this->remindPasswordEmailBodyGenerator(
+                new $this->remindPasswordUrlGenerator($code, $login)
+            ), $email);
+    }
+
     public function remindPassword(RemindPasswordData $data): bool
     {
         $user = $this->storageProvider->fetchUserByEmail($data->getEmail());
         if ($user) {
-            if (!isset($user['remind_password_code']) && !isset($user['remind_password_time'])) {
+            if ($this->canSendReminder($user)) {
                 $saveResult = $this->storageProvider->setReminderCodeAndTime($data->getEmail(), $data->getCode(), $data->getTime());
                 if ($saveResult) {
-                    $saveResult = call_user_func_array(new $this->remindPasswordLinkProvider, [
-                        $data->getEmail(),
-                        $this->remindPasswordLinkTemplate,
-                        $this->remindPasswordEmailBody,
+                    $providerResult = call_user_func($this->getReminderLinkProviderInstance(
+                        $user['login'],
                         $data->getCode(),
-                        $user['login']
-                    ]);
-                }
-                return $saveResult;
-            }
-            if (isset($user['remind_password_code']) && isset($user['remind_password_time'])) {
-                if ($user['remind_password_time'] + ($this->remindPasswordInterval * 60) < time()) {
-                    $saveResult = $this->storageProvider->setReminderCodeAndTime($data->getEmail(), $data->getCode(), $data->getTime());
-                    if ($saveResult) {
-                        $saveResult = call_user_func_array(new $this->remindPasswordLinkProvider, [
-                            $data->getEmail(),
-                            $this->remindPasswordLinkTemplate,
-                            $this->remindPasswordEmailBody,
-                            $data->getCode(),
-                            $user['login']
-                        ]);
-                    }
-                    return $saveResult;
+                        $data->getEmail()
+                    ));
+                    return !!$providerResult;
                 }
             }
         }
