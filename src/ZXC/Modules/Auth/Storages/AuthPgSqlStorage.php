@@ -14,9 +14,9 @@ class AuthPgSqlStorage implements AuthStorage
     /**
      * @var null | PDO
      */
-    protected $pdo = null;
+    protected ?PDO $pdo = null;
 
-    protected $errorMessage = '';
+    protected string $errorMessage = '';
 
     public function __construct()
     {
