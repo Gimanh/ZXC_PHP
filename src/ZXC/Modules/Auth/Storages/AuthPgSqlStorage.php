@@ -126,4 +126,12 @@ class AuthPgSqlStorage implements AuthStorage
         $result = $stmt->execute([$password, $userId]);
         return !!$result;
     }
+
+    /**
+     * @return PDO|null
+     */
+    public function getPdo(): ?PDO
+    {
+        return $this->pdo;
+    }
 }

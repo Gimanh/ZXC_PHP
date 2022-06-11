@@ -58,9 +58,9 @@ class Auth implements Authenticable, IModule
      */
     protected string $userClass = 'ZXC\Modules\Auth\User';
 
-    protected string $confirmUrlTemplate;
+    protected string $confirmUrlGenerator = 'ZXC\Modules\Auth\DataGenerators\AuthConfirmUrlGenerator';
 
-    protected string $confirmEmailBody = '{link}';
+    protected string $confirmEmailBodyGenerator = 'ZXC\Modules\Auth\DataGenerators\AuthConfirmBodyGenerator';
 
     /**
      * If true user will be blocked after registration before email will be confirmed
@@ -92,9 +92,9 @@ class Auth implements Authenticable, IModule
 
         $this->codeProvider = $options['email']['codeProvider'] ?? null;
 
-        $this->confirmUrlTemplate = $options['email']['confirmUrlTemplate'] ?? null;
+        $this->confirmUrlGenerator = $options['email']['confirmUrlGenerator'] ?? 'ZXC\Modules\Auth\DataGenerators\AuthConfirmUrlGenerator';
 
-        $this->confirmEmailBody = $options['email']['body'];
+        $this->confirmEmailBodyGenerator = $options['email']['confirmBodyGenerator'] ?? 'ZXC\Modules\Auth\DataGenerators\AuthConfirmBodyGenerator';
 
         $this->blockWithoutEmailConfirm = $options['blockWithoutEmailConfirm'] ?? true;
 
@@ -138,9 +138,20 @@ class Auth implements Authenticable, IModule
             return ['registration' => false, 'confirmEmail' => false];
         }
         if ($this->confirmEmail && $this->codeProvider) {
-            CallHandler::execHandler($this->codeProvider, [$data, $this->confirmUrlTemplate, $this->confirmEmailBody]);
+            $this->callCodeProvider($data);
         }
         return ['registration' => true, 'confirmEmail' => $this->confirmEmail && $this->codeProvider];
+    }
+
+    public function callCodeProvider(RegisterData $data)
+    {
+        call_user_func(new $this->codeProvider(
+            new $this->confirmEmailBodyGenerator(
+                new $this->confirmUrlGenerator(
+                    $data->getConfirmEmailCode(), $data->getLogin()
+                )
+            ), $data
+        ));
     }
 
     public function confirmEmail(ConfirmEmailData $data): bool
@@ -286,7 +297,7 @@ class Auth implements Authenticable, IModule
      */
     public function getConfirmUrlTemplate(): string
     {
-        return $this->confirmUrlTemplate;
+        return $this->confirmUrlGenerator;
     }
 
     /**
