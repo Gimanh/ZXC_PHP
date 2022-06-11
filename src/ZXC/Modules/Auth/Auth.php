@@ -2,9 +2,7 @@
 
 namespace ZXC\Modules\Auth;
 
-use ZXC\Modules\Auth\Storages\AuthPgSqlStorage;
 use ZXC\Traits\Module;
-use ZXC\Native\CallHandler;
 use ZXC\Interfaces\IModule;
 use ZXC\Native\PSR\ServerRequest;
 use ZXC\Modules\Auth\Data\LoginData;
@@ -12,10 +10,17 @@ use ZXC\Modules\Auth\Data\RegisterData;
 use ZXC\Modules\Auth\Data\ConfirmEmailData;
 use ZXC\Modules\Auth\Data\RemindPasswordData;
 use ZXC\Modules\Auth\Data\ChangePasswordData;
+use ZXC\Modules\Auth\Storages\AuthPgSqlStorage;
 use ZXC\Modules\Auth\Exceptions\InvalidAuthConfig;
+use ZXC\Modules\Auth\Providers\AuthSendReminderLink;
 use ZXC\Modules\Auth\Providers\AuthJwtTokenProvider;
 use ZXC\Interfaces\Psr\Http\Message\RequestInterface;
 use ZXC\Modules\Auth\Data\ChangeRemindedPasswordData;
+use ZXC\Modules\Auth\Providers\AuthConfirmCodeProvider;
+use ZXC\Modules\Auth\DataGenerators\AuthRemindUrlGenerator;
+use ZXC\Modules\Auth\DataGenerators\AuthConfirmUrlGenerator;
+use ZXC\Modules\Auth\DataGenerators\AuthRemindBodyGenerator;
+use ZXC\Modules\Auth\DataGenerators\AuthConfirmBodyGenerator;
 
 class Auth implements Authenticable, IModule
 {
@@ -40,7 +45,7 @@ class Auth implements Authenticable, IModule
     /**
      * Handler which will send code to user email
      */
-    protected string $codeProvider = 'ZXC\Modules\Auth\Providers\AuthConfirmCodeProvider';
+    protected string $codeProvider = AuthConfirmCodeProvider::class;
 
     /**
      * @var null | User
@@ -58,9 +63,9 @@ class Auth implements Authenticable, IModule
      */
     protected string $userClass = 'ZXC\Modules\Auth\User';
 
-    protected string $confirmUrlGenerator = 'ZXC\Modules\Auth\DataGenerators\AuthConfirmUrlGenerator';
+    protected string $confirmUrlGenerator = AuthConfirmUrlGenerator::class;
 
-    protected string $confirmEmailBodyGenerator = 'ZXC\Modules\Auth\DataGenerators\AuthConfirmBodyGenerator';
+    protected string $confirmEmailBodyGenerator = AuthConfirmBodyGenerator::class;
 
     /**
      * If true user will be blocked after registration before email will be confirmed
@@ -70,11 +75,11 @@ class Auth implements Authenticable, IModule
 
     protected int $remindPasswordInterval = 2;
 
-    protected string $remindPasswordUrlGenerator = 'ZXC\Modules\Auth\DataGenerators\AuthRemindUrlGenerator';
+    protected string $remindPasswordUrlGenerator = AuthRemindUrlGenerator::class;
 
-    protected string $remindPasswordEmailBodyGenerator = 'ZXC\Modules\Auth\DataGenerators\AuthRemindBodyGenerator';
+    protected string $remindPasswordEmailBodyGenerator = AuthRemindBodyGenerator::class;
 
-    protected string $remindPasswordLinkProvider = 'ZXC\Modules\Auth\Providers\AuthSendReminderLink';
+    protected string $remindPasswordLinkProvider = AuthSendReminderLink::class;
 
     /**
      * @param array $options
@@ -92,19 +97,19 @@ class Auth implements Authenticable, IModule
 
         $this->codeProvider = $options['email']['codeProvider'] ?? null;
 
-        $this->confirmUrlGenerator = $options['email']['confirmUrlGenerator'] ?? 'ZXC\Modules\Auth\DataGenerators\AuthConfirmUrlGenerator';
+        $this->confirmUrlGenerator = $options['email']['confirmUrlGenerator'] ?? AuthConfirmUrlGenerator::class;
 
-        $this->confirmEmailBodyGenerator = $options['email']['confirmBodyGenerator'] ?? 'ZXC\Modules\Auth\DataGenerators\AuthConfirmBodyGenerator';
+        $this->confirmEmailBodyGenerator = $options['email']['confirmBodyGenerator'] ?? AuthConfirmBodyGenerator::class;
 
         $this->blockWithoutEmailConfirm = $options['blockWithoutEmailConfirm'] ?? true;
 
         $this->remindPasswordInterval = $options['remindPasswordInterval'] ?? 2;
 
-        $this->remindPasswordUrlGenerator = $options['remindPasswordUrlGenerator'] ?? 'ZXC\Modules\Auth\DataGenerators\AuthRemindUrlGenerator';
+        $this->remindPasswordUrlGenerator = $options['remindPasswordUrlGenerator'] ?? AuthRemindUrlGenerator::class;
 
-        $this->remindPasswordLinkProvider = $options['remindPasswordLinkProvider'] ?? 'ZXC\Modules\Auth\Providers\AuthSendReminderLink';
+        $this->remindPasswordLinkProvider = $options['remindPasswordLinkProvider'] ?? AuthSendReminderLink::class;
 
-        $this->remindPasswordEmailBodyGenerator = $options['remindPasswordEmailBodyGenerator'] ?? 'ZXC\Modules\Auth\DataGenerators\AuthRemindBodyGenerator';
+        $this->remindPasswordEmailBodyGenerator = $options['remindPasswordEmailBodyGenerator'] ?? AuthRemindBodyGenerator::class;
 
         $this->authProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [], $this)
             ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? [], $this);
