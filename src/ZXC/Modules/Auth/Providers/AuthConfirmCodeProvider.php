@@ -29,13 +29,6 @@ class AuthConfirmCodeProvider implements AuthConfirmCode
 
     public function __invoke(): void
     {
-        $stop = false;
-//        $email = $data->getEmail();
-//        $code = $data->getConfirmEmailCode();
-//        $login = $data->getLogin();
-//        $url = str_replace(['{code}', '{login}'], [$code, $login], $confirmUrlTemplate);
-//        $url = "<a href='$url'>Confirm registration</a>";
-//        $body = str_replace(['{link}'], [$url], $bodyTemplate);
         $this->mailer
             ->addTo($this->registerData->getEmail(), $this->registerData->getEmail())
             ->setBody($this->bodyGenerator->generate())
