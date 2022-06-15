@@ -2,6 +2,7 @@
 
 namespace ZXC\Modules\Auth;
 
+use RuntimeException;
 use ZXC\Traits\Module;
 use ZXC\Interfaces\IModule;
 use ZXC\Native\PSR\ServerRequest;
@@ -21,6 +22,10 @@ use ZXC\Modules\Auth\DataGenerators\AuthRemindUrlGenerator;
 use ZXC\Modules\Auth\DataGenerators\AuthConfirmUrlGenerator;
 use ZXC\Modules\Auth\DataGenerators\AuthRemindBodyGenerator;
 use ZXC\Modules\Auth\DataGenerators\AuthConfirmBodyGenerator;
+use ZXC\Modules\Auth\DataGenerators\AuthConfirmEmailUrlGenerator;
+use ZXC\Modules\Auth\DataGenerators\AuthConfirmEmailBodyGenerator;
+use ZXC\Modules\Auth\DataGenerators\AuthRemindPasswordUrlGenerator;
+use ZXC\Modules\Auth\DataGenerators\AuthRemindPasswordEmailBodyGenerator;
 
 class Auth implements Authenticable, IModule
 {
@@ -99,7 +104,11 @@ class Auth implements Authenticable, IModule
 
         $this->confirmUrlGenerator = $options['email']['confirmUrlGenerator'] ?? AuthConfirmUrlGenerator::class;
 
+        $this->throwExceptionIfNotImplemented($this->confirmUrlGenerator, AuthConfirmEmailUrlGenerator::class);
+
         $this->confirmEmailBodyGenerator = $options['email']['confirmBodyGenerator'] ?? AuthConfirmBodyGenerator::class;
+
+        $this->throwExceptionIfNotImplemented($this->confirmEmailBodyGenerator, AuthConfirmEmailBodyGenerator::class);
 
         $this->blockWithoutEmailConfirm = $options['blockWithoutEmailConfirm'] ?? true;
 
@@ -107,15 +116,32 @@ class Auth implements Authenticable, IModule
 
         $this->remindPasswordUrlGenerator = $options['remindPasswordUrlGenerator'] ?? AuthRemindUrlGenerator::class;
 
+        $this->throwExceptionIfNotImplemented($this->remindPasswordUrlGenerator, AuthRemindPasswordUrlGenerator::class);
+
         $this->remindPasswordLinkProvider = $options['remindPasswordLinkProvider'] ?? AuthSendReminderLink::class;
 
         $this->remindPasswordEmailBodyGenerator = $options['remindPasswordEmailBodyGenerator'] ?? AuthRemindBodyGenerator::class;
+
+        $this->throwExceptionIfNotImplemented($this->remindPasswordEmailBodyGenerator, AuthRemindPasswordEmailBodyGenerator::class);
 
         $this->authProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [], $this)
             ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? [], $this);
 
         if (isset($options['userClass'])) {
             $this->userClass = $options['userClass'];
+        }
+    }
+
+    public function checkImplementation(object|string $objectOrClass, string $needle): bool
+    {
+        $implementations = class_implements($objectOrClass, true);
+        return in_array($needle, $implementations);
+    }
+
+    public function throwExceptionIfNotImplemented(object|string $objectOrClass, string $needle)
+    {
+        if (!$this->checkImplementation($objectOrClass, $needle)) {
+            throw new RuntimeException("Object $objectOrClass must implement $needle");
         }
     }
 
