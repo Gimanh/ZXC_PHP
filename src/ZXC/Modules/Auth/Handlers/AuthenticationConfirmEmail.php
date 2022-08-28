@@ -17,6 +17,6 @@ class AuthenticationConfirmEmail extends BaseAuthHandler
     {
         list('login' => $login, 'code' => $code) = $routeParams->getParams();
         $this->auth->confirmEmail(new ConfirmEmailData($login, $code));
-        return $response->withHeader('Location', '/')->withStatus(302);
+        return $response->withHeader('Location', $this->auth->getRedirectAfterConfirm())->withStatus(302);
     }
 }

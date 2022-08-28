@@ -86,6 +86,8 @@ class Auth implements Authenticable, IModule
 
     protected string $remindPasswordLinkProvider = AuthSendReminderLink::class;
 
+    protected string $redirectAfterConfirm = '/';
+
     /**
      * @param array $options
      * @throws InvalidAuthConfig
@@ -126,6 +128,8 @@ class Auth implements Authenticable, IModule
 
         $this->authProvider = new $options['authTypeProvider']($options['authTypeProviderOptions'] ?? [], $this)
             ?? new AuthJwtTokenProvider($options['authTypeProviderOptions'] ?? [], $this);
+
+        $this->redirectAfterConfirm = $options['email']['redirectAfterConfirm'] ?? '/';
 
         if (isset($options['userClass'])) {
             $this->userClass = $options['userClass'];
@@ -337,5 +341,13 @@ class Auth implements Authenticable, IModule
     public function isBlockWithoutEmailConfirm(): bool
     {
         return $this->blockWithoutEmailConfirm;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRedirectAfterConfirm(): string
+    {
+        return $this->redirectAfterConfirm;
     }
 }
