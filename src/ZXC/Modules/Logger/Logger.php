@@ -55,12 +55,12 @@ class Logger extends AbstractLogger implements LoggerInterface, IModule
     public function updateLogFullPath()
     {
         if ($this->mode === 'day') {
-            $this->logFileName .= date('Ymd') . '.log';
+            $logFileNameWithDate = $this->logFileName . date('Ymd') . '.log';
         } else {
-            $this->logFileName .= date('Ym') . '.log';
+            $logFileNameWithDate = $this->logFileName . date('Ym') . '.log';
         }
 
-        $this->fullPath = rtrim($this->folder, '/') . '/' . $this->logFileName;
+        $this->fullPath = rtrim($this->folder, '/') . '/' . $logFileNameWithDate;
 
         if (!file_exists($this->fullPath)) {
             $created = touch($this->fullPath);
