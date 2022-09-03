@@ -5,6 +5,7 @@ namespace ZXC;
 
 
 use Exception;
+use ZXC\Interfaces\Psr\Log\AbstractLogger;
 use ZXC\Native\Config;
 use ZXC\Native\Router;
 use ZXC\Native\Modules;
@@ -46,11 +47,13 @@ class ZXC
                 self::sendResponse($routeHandlerResult);
             }
         } catch (Exception $e) {
+            $rid = $this->router->getServerRequest()->getAttribute('rid');
+            /** @var AbstractLogger $logger */
+            $logger = Modules::get('Logger');
+            $logger?->critical("[$rid] - {$e->getMessage()}");
             if (PHP_SAPI !== 'cli') {
                 $response = new Response();
-                $response->getBody()->write(
-                    $this->router->getServerRequest()->getAttribute('rid')
-                );
+                $response->getBody()->write($rid);
                 self::sendResponse(
                     $response->withStatus(500)
                 );
