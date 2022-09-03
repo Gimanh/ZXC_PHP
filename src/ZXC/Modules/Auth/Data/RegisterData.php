@@ -64,10 +64,6 @@ class RegisterData implements AuthenticableData
             throw new PasswordMismatch();
         }
 
-        if (!preg_match('/^\S*(?=\S{8,})(?=\S*[a-z])(?=\S*[A-Z])(?=\S*[\d])\S*$/', $this->passwordFirst)) {
-            throw new InvalidPassword();
-        }
-
         if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidEmail();
         }
