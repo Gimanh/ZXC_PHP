@@ -136,7 +136,7 @@ class DB implements IModule
             $where[] = $fieldWhere . ' = ?';
             $args[] = $valueWhere;
         }
-        $query .= implode('AND', $where);
+        $query .= implode('AND ', $where);
         $stmt = $this->pdo->prepare($query);
         return $stmt->execute($args);
     }
