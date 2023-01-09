@@ -1,10 +1,9 @@
 <?php
 
-
 namespace ZXC\Modules\Logger;
 
-
 use DateTime;
+use RuntimeException;
 use ZXC\Traits\Module;
 use ZXC\Native\FromGlobals;
 use ZXC\Interfaces\IModule;
@@ -12,25 +11,28 @@ use ZXC\Interfaces\Psr\Log\LogLevel;
 use ZXC\Interfaces\Psr\Log\AbstractLogger;
 use ZXC\Interfaces\Psr\Log\LoggerInterface;
 
-
 class Logger extends AbstractLogger implements LoggerInterface, IModule
 {
     use Module;
 
-    protected $dateFormat = DateTime::RFC2822;
+    protected string $dateFormat = DateTime::RFC2822;
 
-    protected $logFileName = '';
+    protected string $logFileName = '';
 
-    protected $folder = '';
+    protected string $folder = '';
 
-    protected $template = "";
+    protected string $template = "";
 
-    /** @var string */
-    protected $level = LogLevel::CRITICAL;
+    protected string $level = LogLevel::CRITICAL;
 
-    protected $fullPath = null;
+    protected string $fullPath;
 
-    private $lvlToValue = [
+    /**
+     * @var string "day" | "month"
+     */
+    protected string $mode = "day";
+
+    private array $lvlToValue = [
         LogLevel::EMERGENCY => 0,
         LogLevel::ALERT => 1,
         LogLevel::CRITICAL => 2,
@@ -41,21 +43,36 @@ class Logger extends AbstractLogger implements LoggerInterface, IModule
         LogLevel::DEBUG => 7,
     ];
 
-    public function init(array $config = [])
+    public function init(array $options = [])
     {
-        $this->level = $config['lvl'] ?? LogLevel::CRITICAL;
-        $this->logFileName = $config['fileName'] ?? 'ZXC_Application.log';
-        $this->folder = $config['folder'] ?? sys_get_temp_dir();
-        $this->fullPath = $this->folder . '/' . $this->logFileName;
-        $this->template = $config['template'] ?? "{date} | {level} | {ip} | {message} | {context}";
+        $this->level = $options['lvl'] ?? LogLevel::CRITICAL;
+        $this->logFileName = $options['fileName'] ?? 'zxc_application';
+        $this->folder = $options['folder'] ?? sys_get_temp_dir();
+        $this->template = $options['template'] ?? "{date} | {level} | {ip} | {message} | {context}";
+        $this->mode = $options['mode'] ?? 'day';
+    }
+
+    public function updateLogFullPath()
+    {
+        if ($this->mode === 'day') {
+            $this->logFileName .= date('Ymd') . '.log';
+        } else {
+            $this->logFileName .= date('Ym') . '.log';
+        }
+
+        $this->fullPath = rtrim($this->folder, '/') . '/' . $this->logFileName;
 
         if (!file_exists($this->fullPath)) {
-            touch($this->fullPath);
+            $created = touch($this->fullPath);
+            if (!$created) {
+                throw new RuntimeException('Can not create log file.');
+            }
         }
     }
 
-    public function log($level, $message, array $context = [])
+    public function log($level, $message, array $context = []): void
     {
+        $this->updateLogFullPath();
         if ($this->lvlToValue[$level] <= $this->lvlToValue[$this->level]) {
             file_put_contents($this->fullPath, trim(strtr($this->template, [
                     '{date}' => $this->getDate(),
@@ -67,13 +84,13 @@ class Logger extends AbstractLogger implements LoggerInterface, IModule
         }
     }
 
-    public function getDate()
+    public function getDate(): string
     {
         return (new DateTime())->format($this->dateFormat);
     }
 
-    public function contextStringify(array $context = [])
+    public function contextStringify(array $context = []): bool|string
     {
-        return !empty($context) ? json_encode($context) : null;
+        return json_encode($context);
     }
 }

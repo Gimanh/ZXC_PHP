@@ -19,7 +19,7 @@
 
 namespace ZXC\Modules\Mailer\Tx;
 
-use Psr\Log\LoggerInterface;
+use ZXC\Interfaces\Psr\Log\LoggerInterface;
 
 /**
  * Class Mailer

@@ -119,17 +119,4 @@ class Request extends Message implements RequestInterface
         }
         return $new;
     }
-
-    /**
-     * @method getAuthorizationToken
-     * @return bool|string
-     */
-    public function getAuthorizationToken()
-    {
-        $header = $this->getHeaderLine('Authorization');
-        if (preg_match('/Bearer\s(\S+)/', $header, $matches)) {
-            return $matches[1];
-        }
-        return false;
-    }
 }

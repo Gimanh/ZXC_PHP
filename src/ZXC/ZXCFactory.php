@@ -6,8 +6,8 @@ namespace ZXC;
 
 class ZXCFactory
 {
-    public static function create(string $configFile): ZXC
+    public static function create(array $config): ZXC
     {
-        return new ZXC($configFile);
+        return new ZXC($config);
     }
 }

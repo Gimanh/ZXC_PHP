@@ -12,14 +12,18 @@ class FromGlobals
 {
     public static function getUri(): UriInterface
     {
-        $uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
-            . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-        return (new UriFactory)->createUri($uri);
+        if (isset($_SERVER['REQUEST_URI'])) {
+            $uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+                . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+            return (new UriFactory)->createUri($uri);
+        } else {
+            return (new UriFactory)->createUri('');
+        }
     }
 
     public static function getMethod(): string
     {
-        return $_SERVER['REQUEST_METHOD'];
+        return $_SERVER['REQUEST_METHOD'] ?? '';
     }
 
     public static function getServerParams(): array

@@ -69,7 +69,7 @@ class Modules
 
         if (!isset(self::$modulesInstances[$moduleName])) {
             return call_user_func_array([
-                self::createInstance(self::$modulesOptions[$moduleName]), 'create'
+                self::createInstance(self::$modulesOptions[self::$modulesName[strtolower($moduleName)]]), 'create'
             ], [$options]);
         }
 
@@ -87,7 +87,7 @@ class Modules
     {
         $instance = self::createInstanceOfClass($params->getClass());
         if (!$instance instanceof IModule) {
-            throw new RuntimeException('Module ' . $params['class'] . ' must implement \'ZXC\Interfaces\Module\'');
+            throw new RuntimeException('Module ' . $params->getClass() . ' must implement \'ZXC\Interfaces\Module\'');
         }
         $instance->init($params->getOptions());
         return $instance;
