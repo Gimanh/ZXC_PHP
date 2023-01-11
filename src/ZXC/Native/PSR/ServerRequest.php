@@ -47,18 +47,19 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function __construct(
         string $method,
-        $uri,
-        $server = [],
-        $cookieParams = [],
-        $uploadedFiles = [],
-        $get = [],
-        $post = []
+               $uri,
+               $server = [],
+               $cookieParams = [],
+               $uploadedFiles = [],
+               $get = [],
+               $post = []
     )
     {
         $this->serverParams = $server;
         $this->cookieParams = $cookieParams;
-        //FIXME must be UploadedFileInterface[]
-        $this->uploadedFiles = $uploadedFiles;
+
+        $this->initUploadedFiles($uploadedFiles);
+
         if ($get) {
             $this->queryParams = $_GET;
         } else {
@@ -79,6 +80,19 @@ class ServerRequest extends Request implements ServerRequestInterface
         $headers = $this->getPsrServerHeaders();
         $body = 'php://memory';
         parent::__construct($uri, $method, $headers, $body);
+    }
+
+    private function initUploadedFiles($uploadedFiles)
+    {
+        foreach ($uploadedFiles as $file) {
+            $this->uploadedFiles[] = new UploadedFile(
+                new Stream($file['tmp_name']),
+                $file['size'],
+                $file['error'],
+                $file['name'],
+                $file['type'],
+            );
+        }
     }
 
     public static function getPsrServerHeaders()
