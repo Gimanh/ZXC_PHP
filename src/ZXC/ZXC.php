@@ -73,7 +73,8 @@ class ZXC
                     $first = false;
                 }
             }
-            header(sprintf('HTTP/%s %s %s',
+            header(sprintf(
+                'HTTP/%s %s %s',
                 $response->getProtocolVersion(),
                 $response->getStatusCode(),
                 $response->getReasonPhrase()

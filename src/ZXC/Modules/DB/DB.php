@@ -34,6 +34,7 @@ class DB implements IModule
 
         try {
             $this->pdo = new PDO($dsn, $username, $password, $pdoOptions);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             $this->errorCode = $e->getCode();
             $this->errorMessage = $e->getMessage();
