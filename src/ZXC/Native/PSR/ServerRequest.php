@@ -100,19 +100,6 @@ class ServerRequest extends Request implements ServerRequestInterface
         }
     }
 
-    private function initUploadedFiles($uploadedFiles)
-    {
-        foreach ($uploadedFiles as $file) {
-            $this->uploadedFiles[] = new UploadedFile(
-                new Stream($file['tmp_name']),
-                $file['size'],
-                $file['error'],
-                $file['name'],
-                $file['type'],
-            );
-        }
-    }
-
     public static function getPsrServerHeaders()
     {
         $psrHeaders = [];
