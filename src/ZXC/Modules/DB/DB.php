@@ -34,6 +34,7 @@ class DB implements IModule
 
         try {
             $this->pdo = new PDO($dsn, $username, $password, $pdoOptions);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             $this->errorCode = $e->getCode();
             $this->errorMessage = $e->getMessage();
@@ -136,7 +137,7 @@ class DB implements IModule
             $where[] = $fieldWhere . ' = ?';
             $args[] = $valueWhere;
         }
-        $query .= implode('AND', $where);
+        $query .= implode('AND ', $where);
         $stmt = $this->pdo->prepare($query);
         return $stmt->execute($args);
     }

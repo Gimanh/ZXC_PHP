@@ -47,14 +47,13 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     public function __construct(
         string $method,
-               $uri,
-               $server = [],
-               $cookieParams = [],
-               $uploadedFiles = [],
-               $get = [],
-               $post = []
-    )
-    {
+        $uri,
+        $server = [],
+        $cookieParams = [],
+        $uploadedFiles = [],
+        $get = [],
+        $post = []
+    ) {
         $this->serverParams = $server;
         $this->cookieParams = $cookieParams;
 
@@ -68,9 +67,6 @@ class ServerRequest extends Request implements ServerRequestInterface
             }
         }
 
-        if ($post) {
-            $this->parsedBody = $post;
-        }
         if (!$uri) {
             $uri = $this->getUriString();
         }
@@ -79,7 +75,29 @@ class ServerRequest extends Request implements ServerRequestInterface
         }
         $headers = $this->getPsrServerHeaders();
         $body = 'php://memory';
+
         parent::__construct($uri, $method, $headers, $body);
+
+        if ($post) {
+            $this->parsedBody = $post;
+        } else {
+            if (in_array('application/json', $this->getHeader('content-type'))) {
+                $this->parsedBody = json_decode(file_get_contents('php://input'), true);
+            }
+        }
+    }
+
+    private function initUploadedFiles($uploadedFiles)
+    {
+        foreach ($uploadedFiles as $file) {
+            $this->uploadedFiles[] = new UploadedFile(
+                new Stream($file['tmp_name']),
+                $file['size'],
+                $file['error'],
+                $file['name'],
+                $file['type'],
+            );
+        }
     }
 
     private function initUploadedFiles($uploadedFiles)
@@ -110,13 +128,7 @@ class ServerRequest extends Request implements ServerRequestInterface
 
     public static function getAllHeaders()
     {
-        $headers = [];
-        foreach ($_SERVER as $name => $value) {
-            if (substr($name, 0, 5) == 'HTTP_') {
-                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-            }
-        }
-        return $headers;
+        return getallheaders();
     }
 
     private function getUriString()
