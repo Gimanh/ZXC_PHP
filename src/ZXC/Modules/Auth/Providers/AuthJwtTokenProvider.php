@@ -146,7 +146,7 @@ class AuthJwtTokenProvider implements AuthLoginProvider
             $tokenInfo = $this->decodeToken($token);
             if (isset($tokenInfo['userData'])) {
                 $tokens = $this->tokenStorage->fetchTokens($tokenInfo['id']);
-                if ($tokens['access_token'] === $token && $tokenInfo['userData']['id'] === $tokens['user_id']) {
+                if ($tokens && $tokens['access_token'] === $token && $tokenInfo['userData']['id'] === $tokens['user_id']) {
                     $userInfo = $this->auth->getStorageProvider()->fetchUserByLogin($tokenInfo['userData']['login']);
                     $permissions = $this->auth->getStorageProvider()->fetchUserPermissions($userInfo['id']);
                     return new ($this->auth->getUserClass())($userInfo['id'], $userInfo['login'], $userInfo['email'], $userInfo['block'], $permissions);
