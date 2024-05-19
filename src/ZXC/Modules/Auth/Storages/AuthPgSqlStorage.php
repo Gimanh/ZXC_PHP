@@ -134,4 +134,12 @@ class AuthPgSqlStorage implements AuthStorage
     {
         return $this->pdo;
     }
+
+    public function clearAllSessionTokensForUser(int $userId): bool
+    {
+        $query = 'delete from tv_auth.user_tokens where user_id = ?';
+        $stmt = $this->pdo->prepare($query);
+        $result = $stmt->execute([$userId]);
+        return !!$result;
+    }
 }

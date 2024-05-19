@@ -28,4 +28,6 @@ interface AuthStorage
     public function setReminderCodeAndTime(string $email, ?string $code, ?int $time): bool;
 
     public function updateUserPassword(string $password, int $userId): bool;
+
+    public function clearAllSessionTokensForUser(int $userId): bool;
 }

@@ -183,9 +183,11 @@ class Auth implements Authenticable, IModule
         call_user_func(new $this->codeProvider(
             new $this->confirmEmailBodyGenerator(
                 new $this->confirmUrlGenerator(
-                    $data->getConfirmEmailCode(), $data->getLogin()
+                    $data->getConfirmEmailCode(),
+                    $data->getLogin()
                 )
-            ), $data
+            ),
+            $data
         ));
     }
 
@@ -218,7 +220,9 @@ class Auth implements Authenticable, IModule
         return new $this->remindPasswordLinkProvider(
             new $this->remindPasswordEmailBodyGenerator(
                 new $this->remindPasswordUrlGenerator($code, $login)
-            ), $email);
+            ),
+            $email
+        );
     }
 
     public function remindPassword(RemindPasswordData $data): bool
@@ -249,6 +253,7 @@ class Auth implements Authenticable, IModule
                 $updateResult = $this->storageProvider->updateUserPassword($password, $user['id']);
                 if ($updateResult) {
                     $this->storageProvider->setReminderCodeAndTime($user['email'], null, null);
+                    $this->storageProvider->clearAllSessionTokensForUser($user['id']);
                 }
                 return $updateResult;
             }
