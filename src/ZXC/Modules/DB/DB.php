@@ -31,10 +31,14 @@ class DB implements IModule
         $username = $options['username'] ?? null;
         $password = $options['password'] ?? null;
         $pdoOptions = $options['options'] ?? null;
+        $tz = $options['tz'] ?? null;
 
         try {
             $this->pdo = new PDO($dsn, $username, $password, $pdoOptions);
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            if ($tz) {
+                $this->pdo->exec("SET TIME ZONE '$tz'");
+            }
         } catch (PDOException $e) {
             $this->errorCode = $e->getCode();
             $this->errorMessage = $e->getMessage();

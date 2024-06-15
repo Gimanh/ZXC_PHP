@@ -172,6 +172,11 @@ class Route implements RequestHandlerInterface
         $this->routeURIParams = $routeURIParams;
     }
 
+    public function getRouteURIParams()
+    {
+        return $this->routeURIParams;
+    }
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         return $this->callCallback(
@@ -184,6 +189,7 @@ class Route implements RequestHandlerInterface
 
     public function executeRoute()
     {
+        $this->serverRequest = $this->serverRequest->withAttribute('route', $this);
         if ($this->middlewares) {
             $handlersStack = new Handler($this);
             $count = count($this->middlewares) - 1;
