@@ -102,7 +102,7 @@ class Cors implements IModule
     }
 
     /**
-     * @return string
+     * @return string[]
      */
     public function getExposeHeaders(): array
     {

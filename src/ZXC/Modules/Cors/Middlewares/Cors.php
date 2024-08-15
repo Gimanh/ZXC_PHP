@@ -10,6 +10,7 @@ use ZXC\Interfaces\Psr\Server\MiddlewareInterface;
 use ZXC\Interfaces\Psr\Http\Message\ResponseInterface;
 use ZXC\Interfaces\Psr\Server\RequestHandlerInterface;
 use ZXC\Interfaces\Psr\Http\Message\ServerRequestInterface;
+use ZXC\Modules\Cors\Cors as CorsCors;
 
 class Cors implements MiddlewareInterface
 {
@@ -25,7 +26,7 @@ class Cors implements MiddlewareInterface
 
     protected function prepareResponse(ResponseInterface $response): ResponseInterface
     {
-        /** @var $cors \ZXC\Modules\Cors\Cors */
+        /** @var CorsCors $cors */
         $cors = Modules::get('cors');
 
         if ($cors->getExposeHeaders()) {
